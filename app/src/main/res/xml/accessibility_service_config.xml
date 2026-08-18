@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    P0-6 无障碍服务配置
+    - canRequestFilterKeyEvents + requestFilterKeyEvents：允许 onKeyEvent 捕获全局物理按键
+    - canRetrieveWindowContent：允许读取 rootInActiveWindow 以获得前台应用包名（P1-1 自动切换）
+    - canPerformGestures：允许 dispatchGesture 注入点击/长按/滑动/双指缩放
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews"
+    android:canPerformGestures="true"
+    android:canRequestFilterKeyEvents="true"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/accessibility_service_description"
+    android:notificationTimeout="100"
+    android:summary="@string/accessibility_service_summary" />

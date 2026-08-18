@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P0-4 映射标记标签底色（实际填充色由代码按 labelColor 动态覆盖） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#CCFF5722" />
+    <corners android:radius="6dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#99FFFFFF" />
+</shape>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    P0-6 前台保活服务的声明式参数。
+    由 KeepAliveService 通过 resources.getXml(R.xml.keep_alive_service_config) 解析读取，
+    调整保活策略无需改动 Kotlin 代码。
+    - channelId / channelName：常驻通知渠道
+    - restartDelayMs：onDestroy 后尝试重启自身的延时（毫秒）
+    - foregroundServiceType：与 AndroidManifest 中 android:foregroundServiceType 保持一致（仅作记录）
+-->
+<keep-alive-config
+    channelId="keymapper_keep_alive"
+    channelName="KeyMapper 运行状态"
+    foregroundServiceType="specialUse"
+    restartDelayMs="1500"
+    restartEnabled="true" />

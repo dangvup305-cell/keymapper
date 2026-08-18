@@ -1,0 +1,57 @@
+%% 流程(a) 映射模式：记录坐标 → 绑定按键 → 保存配置
+sequenceDiagram
+    actor User
+    participant FB as FloatingButtonView
+    participant MO as MappingOverlayActivity/CrosshairView
+    participant AS as KeyMapperAccessibilityService
+    participant ME as MappingEngine
+    participant CR as ConfigRepository
+    participant JS as JsonConfigStore
+
+    User->>FB: 单击展开 → 开始映射
+    FB->>MO: 启动覆盖层
+    MO->>MO: 显示半透明十字准星
+    User->>MO: 点击屏幕 (x,y)
+    MO->>MO: 通过 MotionEvent 采集原始绝对坐标
+    MO->>ME: startCaptureMode(onNextKey)
+    ME->>AS: 进入捕获态
+    MO->>User: 提示"请按下要绑定的键盘按键"
+    User->>AS: 按下键盘键 (KeyEvent)
+    AS->>ME: onKeyEvent(e)
+    ME->>ME: 截获 keyCode 完成绑定
+    ME->>MO: onNextKey(keyCode)
+    MO->>User: 回显键值、显示标签
+    User->>MO: 输入名称 → 保存
+    MO->>CR: saveConfig(MappingConfig)
+    CR->>JS: write(cfg)
+    JS-->>CR: 落盘 JSON
+    CR-->>User: 提示保存成功
+
+%% 流程(b) 键盘触发 → 匹配 → 注入触摸
+sequenceDiagram
+    actor User
+    participant AS as KeyMapperAccessibilityService
+    participant ME as MappingEngine
+    participant RS as ResolutionScaler
+    participant GA as GestureAction
+    participant Macro as MacroPlayer
+
+    User->>AS: 前台应用中按下物理键
+    AS->>ME: onKeyEvent(e)
+    ME->>ME: 维护组合键状态机
+    alt 命中单键/组合键绑定
+        ME->>ME: 取出 KeyBinding
+        alt actionType == click
+            ME->>RS: scale(x,y) → 当前分辨率坐标
+            ME->>AS: dispatchGesture(click@xy)
+            AS->>AS: 注入 Path+Stroke → 系统触摸
+        else actionType == swipe/pinch/longpress
+            ME->>GA: 解析手势参数
+            GA->>AS: dispatchGesture(多 Stroke)
+        else 绑定含 macro
+            ME->>Macro: play(macro)
+            Macro->>AS: dispatchGesture(每步) + 协程延时
+        end
+    else 未命中
+        ME->>ME: 忽略（透传系统）
+    end

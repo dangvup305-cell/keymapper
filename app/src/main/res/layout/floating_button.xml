@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P0-1 悬浮小球（收起态）：merge 到 FloatingButtonView(FrameLayout) 中 -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <ImageView
+        android:id="@+id/ivBall"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_floating_ball"
+        android:contentDescription="@string/floating_ball_desc"
+        android:padding="12dp"
+        android:src="@drawable/ic_gamepad" />
+
+</merge>

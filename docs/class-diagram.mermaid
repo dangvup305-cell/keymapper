@@ -1,0 +1,110 @@
+classDiagram
+    direction LR
+
+    class MappingConfig {
+        +String configName
+        +Int screenWidth
+        +Int screenHeight
+        +List~KeyBinding~ bindings
+        +Long createdAt
+        +String? appPackage
+        +toJson() String
+        +scaledCopy(targetW, targetH) MappingConfig
+    }
+
+    class KeyBinding {
+        +Int x
+        +Int y
+        +Int keyCode
+        +List~Int~? keyCombination
+        +String labelColor
+        +ActionType actionType
+        +GestureAction? gestureParams
+        +Macro? macro
+        +String? label
+        +displayKey() String
+    }
+
+    class GestureAction {
+        +GestureType type
+        +Long durationMs
+        +Point? from
+        +Point? to
+        +Float scaleFactor
+        +Point? focal
+    }
+
+    class Macro {
+        +String name
+        +List~MacroStep~ steps
+        +toJson() String
+    }
+
+    class MacroStep {
+        +StepAction action
+        +Int? keyCode
+        +Int? x
+        +Int? y
+        +Long holdMs
+        +Long delayMs
+        +Int repeat
+    }
+
+    class Point {
+        +Int x
+        +Int y
+    }
+
+    class ConfigRepository {
+        -JsonConfigStore store
+        +saveConfig(cfg) Unit
+        +loadConfig(name) MappingConfig?
+        +deleteConfig(name) Boolean
+        +listConfigs() List~String~
+        +exportToFile(cfg, uri) Unit
+        +importFromFile(uri) MappingConfig
+    }
+
+    class JsonConfigStore {
+        -Context ctx
+        +read(name) MappingConfig?
+        +write(cfg) Unit
+        +delete(name) Boolean
+        +listNames() List~String~
+        +serialize(cfg) String
+        +deserialize(json) MappingConfig
+    }
+
+    class MappingEngine {
+        -Map~Int, KeyBinding~ singleMap
+        -Map~List~Int~, KeyBinding~ comboMap
+        -KeyMapperAccessibilityService svc
+        +loadBindings(cfg) Unit
+        +onKeyEvent(e) Unit
+        +matchAndDispatch(keyCode) Unit
+        +startCaptureMode(onNextKey) Unit
+    }
+
+    class MacroPlayer {
+        -KeyMapperAccessibilityService svc
+        +play(macro) Unit
+        -executeStep(step) Unit
+    }
+
+    class KeyMapperAccessibilityService {
+        +onKeyEvent(KeyEvent) Boolean
+        +dispatchGesture(desc, cb, h) Boolean
+        +onAccessibilityEvent(event) Unit
+    }
+
+    MappingConfig "1" *-- "0..*" KeyBinding : bindings
+    KeyBinding "1" o-- "0..1" GestureAction : gestureParams
+    KeyBinding "1" o-- "0..1" Macro : macro
+    Macro "1" *-- "1..*" MacroStep : steps
+    GestureAction "0..1" o-- "1..*" Point : from/to/focal
+    MacroPlayer ..> KeyMapperAccessibilityService : dispatchGesture
+    MappingEngine ..> KeyMapperAccessibilityService : dispatchGesture
+    MappingEngine ..> Macro : play()
+    MacroPlayer ..> Macro : execute
+    ConfigRepository --> JsonConfigStore : 使用
+    JsonConfigStore ..> MappingConfig : 序列化

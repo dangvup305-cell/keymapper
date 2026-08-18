@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P0-2 十字准星图标（CrosshairView 主要用 Canvas 绘制，本图标用于按钮/说明处） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/crosshair_line">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M11,2h2v6h-2zM11,16h2v6h-2zM2,11h6v2H2zM16,11h6v2h-6z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,9a3,3 0,1 0,0.001 0zM12,11a1,1 0,1 1,-0.001 0z" />
+</vector>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- P0-1 悬浮窗跨应用显示 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- P0-6 前台服务保活 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- P2-3 低电量降频需要读取电量广播（无需运行时权限，声明便于阅读） -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- P2-2 鼠标滚轮映射（无鼠标设备优雅降级，非必需特性） -->
+    <uses-feature
+        android:name="android.hardware.type.pc"
+        android:required="false" />
+
+    <application
+        android:name=".MainApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.KeyMapper"
+        tools:targetApi="34">
+
+        <!-- 入口 Activity：权限检查 → 跳设置或启动悬浮窗 -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- P0-2 映射模式覆盖层：全屏半透明 + 十字准星 -->
+        <activity
+            android:name=".ui.mapping.MappingOverlayActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|keyboard"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:screenOrientation="behind"
+            android:theme="@style/Theme.KeyMapper.Transparent"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <!-- P0-5 / P1-1 / P1-6 配置面板 -->
+        <activity
+            android:name=".ui.config.ConfigPanelActivity"
+            android:exported="false"
+            android:label="@string/title_config_panel"
+            android:launchMode="singleTop" />
+
+        <!-- P0-8 / P2-3 设置与权限引导 -->
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:label="@string/title_settings"
+            android:launchMode="singleTop" />
+
+        <!-- P0-6 无障碍服务：全局键盘监听 + 手势注入 -->
+        <service
+            android:name=".accessibility.KeyMapperAccessibilityService"
+            android:exported="true"
+            android:label="@string/accessibility_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <!-- P0-6 前台服务保活 -->
+        <service
+            android:name=".service.KeepAliveService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="keymapper_global_key_bridge" />
+            <meta-data
+                android:name="com.keymapper.keep_alive_config"
+                android:resource="@xml/keep_alive_service_config" />
+        </service>
+
+        <!-- P0-1 / P0-4 悬浮窗服务（悬浮球 + 面板 + 标记层 + 调试高亮层） -->
+        <service
+            android:name=".service.FloatingWindowService"
+            android:exported="false"
+            android:stopWithTask="false" />
+
+    </application>
+
+</manifest>

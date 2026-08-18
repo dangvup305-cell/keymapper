@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KeyMapper 按键映射</string>
+
+    <!-- 无障碍服务 -->
+    <string name="accessibility_service_label">KeyMapper 按键映射服务</string>
+    <string name="accessibility_service_summary">监听物理键盘并在屏幕对应坐标模拟触摸</string>
+    <string name="accessibility_service_description">开启后，KeyMapper 可以监听物理键盘按键，并把按键映射为屏幕坐标上的点击、长按、滑动等触摸操作。本服务不会读取或上传您的任何输入内容，全部数据仅保存在本机。</string>
+
+    <!-- 通用 -->
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="save">保存</string>
+    <string name="close">关闭</string>
+    <string name="rename">重命名</string>
+    <string name="overwrite">覆盖</string>
+    <string name="load">载入</string>
+    <string name="granted">已开启</string>
+    <string name="not_granted">未开启</string>
+    <string name="go_enable">去开启</string>
+    <string name="why_needed">为什么需要？</string>
+
+    <!-- MainActivity -->
+    <string name="title_main">KeyMapper</string>
+    <string name="main_subtitle">把物理键盘按键映射到屏幕坐标</string>
+    <string name="btn_start_floating">启动悬浮窗</string>
+    <string name="btn_stop_floating">关闭悬浮窗</string>
+    <string name="btn_start_mapping">开始映射</string>
+    <string name="btn_config_panel">配置管理</string>
+    <string name="btn_settings">设置 / 权限引导</string>
+    <string name="status_permission_ready">全部必需权限已就绪</string>
+    <string name="status_permission_missing">存在未开启的必需权限，请先完成权限引导</string>
+    <string name="status_active_config">当前配置：%1$s</string>
+    <string name="status_no_active_config">当前配置：未选择</string>
+    <string name="toast_need_permission">请先开启无障碍服务与悬浮窗权限</string>
+    <string name="toast_floating_started">悬浮窗已启动</string>
+    <string name="toast_floating_stopped">悬浮窗已关闭</string>
+
+    <!-- 权限引导（P0-8） -->
+    <string name="title_settings">设置 / 权限引导</string>
+    <string name="perm_accessibility_title">无障碍服务</string>
+    <string name="perm_accessibility_desc">用于后台监听全局键盘按键并向屏幕注入触摸事件。这是本工具的核心能力，未开启则按键无法触发点击。</string>
+    <string name="perm_overlay_title">悬浮窗权限</string>
+    <string name="perm_overlay_desc">用于在其他应用之上显示悬浮球、操作面板与映射标记。未开启则无法跨应用使用。</string>
+    <string name="perm_notification_title">通知权限</string>
+    <string name="perm_notification_desc">前台保活服务需要显示一条常驻通知，避免系统在后台回收监听服务（Android 13 及以上需要授权）。</string>
+    <string name="setting_low_battery_title">低电量降频</string>
+    <string name="setting_low_battery_desc">电量低于 20%% 时自动降低悬浮窗刷新率与动画频率，不影响按键触发精度。</string>
+    <string name="setting_auto_switch_title">按前台应用自动切换配置</string>
+    <string name="setting_auto_switch_desc">检测到前台应用包名与某个配置的 appPackage 一致时自动加载该配置，关闭则完全由您手动切换。</string>
+    <string name="setting_about_title">关于</string>
+    <string name="setting_about_desc">KeyMapper v1.0 — 全部映射数据以 JSON 形式保存在应用私有目录，可随时导出迁移。</string>
+
+    <!-- 映射模式（P0-2 / P0-3 / P0-4） -->
+    <string name="mapping_hint_pick_point">点击屏幕记录坐标，再按键盘按键完成绑定</string>
+    <string name="mapping_hint_press_key">已记录坐标 (x:%1$d, y:%2$d)\n请按下要绑定的键盘按键…</string>
+    <string name="mapping_hint_bound">已绑定 %1$s → (x:%2$d, y:%3$d)</string>
+    <string name="mapping_waiting_key">▣ 等待输入…</string>
+    <string name="mapping_btn_save">保存配置</string>
+    <string name="mapping_btn_exit">退出映射</string>
+    <string name="mapping_btn_undo">撤销上一个</string>
+    <string name="mapping_binding_count">已映射 %1$d 个点</string>
+    <string name="mapping_marker_menu_title">%1$s 的映射点</string>
+    <string name="mapping_marker_delete">删除该映射</string>
+    <string name="mapping_marker_rebind">重新绑定按键</string>
+    <string name="mapping_marker_change_color">修改标签颜色</string>
+    <string name="mapping_marker_change_action">修改触发类型</string>
+    <string name="mapping_save_dialog_title">保存为配置</string>
+    <string name="mapping_save_dialog_hint">请输入配置名称，如「王者荣耀方案」</string>
+    <string name="mapping_toast_saved">配置「%1$s」已保存</string>
+    <string name="mapping_toast_empty">还没有任何映射点，无法保存</string>
+    <string name="mapping_toast_name_empty">配置名称不能为空</string>
+    <string name="mapping_toast_capture_timeout">未检测到按键输入，已取消本次绑定</string>
+    <string name="mapping_toast_duplicated">按键 %1$s 已被占用，已覆盖旧映射</string>
+    <string name="mapping_hint_swipe_target">请点击滑动的终点位置</string>
+    <string name="mapping_macro_edit_hint">该映射点还没有宏步骤，请先在配置 JSON 中编写 macro 后再切换为宏指令</string>
+
+    <!-- 触发类型 -->
+    <string name="action_type_click">点击</string>
+    <string name="action_type_longpress">长按</string>
+    <string name="action_type_swipe">滑动</string>
+    <string name="action_type_pinch">双指缩放</string>
+    <string name="action_type_macro">宏指令</string>
+
+    <!-- 配置面板（P0-5 / P1-1 / P1-6） -->
+    <string name="title_config_panel">我的配置</string>
+    <string name="config_btn_new">+ 新建</string>
+    <string name="config_btn_export">导出</string>
+    <string name="config_btn_import">导入</string>
+    <string name="config_btn_test">测试映射</string>
+    <string name="config_btn_test_exit">退出测试</string>
+    <string name="config_empty">还没有任何配置，点击「+ 新建」开始映射</string>
+    <string name="config_item_summary">%1$d 个映射点 · 源分辨率 %2$d×%3$d</string>
+    <string name="config_delete_confirm_title">删除配置</string>
+    <string name="config_delete_confirm_msg">确定要删除配置「%1$s」吗？此操作不可恢复。</string>
+    <string name="config_toast_loaded">已载入配置「%1$s」</string>
+    <string name="config_toast_deleted">已删除配置「%1$s」</string>
+    <string name="config_toast_exported">配置已导出</string>
+    <string name="config_toast_imported">已导入配置「%1$s」</string>
+    <string name="config_toast_import_failed">导入失败：%1$s</string>
+    <string name="config_toast_export_failed">导出失败：%1$s</string>
+    <string name="config_toast_select_first">请先选择一个配置</string>
+    <string name="config_import_conflict_title">配置同名</string>
+    <string name="config_import_conflict_msg">已存在名为「%1$s」的配置，请选择处理方式。</string>
+    <string name="config_scaled_hint">已按当前分辨率 %1$d×%2$d 等比缩放坐标</string>
+    <string name="config_test_mode_on">测试模式已开启：按下绑定键将高亮对应坐标</string>
+    <string name="config_test_mode_off">测试模式已关闭</string>
+
+    <!-- 悬浮窗（P0-1） -->
+    <string name="floating_title">KeyMapper</string>
+    <string name="floating_btn_mapping">开始映射</string>
+    <string name="floating_btn_load">加载配置 ▾</string>
+    <string name="floating_btn_settings">⚙ 设置</string>
+    <string name="floating_btn_markers">显示/隐藏标记</string>
+    <string name="floating_ball_desc">KeyMapper 悬浮球</string>
+    <string name="floating_quick_switch_title">▾ 快速切换方案</string>
+    <string name="floating_no_config">暂无可切换的配置</string>
+
+    <!-- 保活通知（P0-6） -->
+    <string name="notification_channel_name">KeyMapper 运行状态</string>
+    <string name="notification_channel_desc">保持按键映射服务在后台常驻运行</string>
+    <string name="notification_title">KeyMapper 正在运行</string>
+    <string name="notification_text_idle">未加载配置 · 点击打开控制台</string>
+    <string name="notification_text_running">当前配置：%1$s</string>
+
+    <!-- 引擎与错误 -->
+    <string name="error_accessibility_not_running">无障碍服务未运行，请到设置中开启</string>
+    <string name="error_config_parse">配置文件解析失败：%1$s</string>
+    <string name="error_no_mouse_device">未检测到鼠标设备，滚轮映射不可用</string>
+</resources>

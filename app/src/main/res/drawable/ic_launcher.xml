@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    应用图标（矢量）。
+    说明：当前工具链无法产出二进制 PNG，因此用矢量图标代替 mipmap-*/ic_launcher.png，
+    在 API 21+ 上均可正常作为 launcher icon 使用；如需自适应图标可后续在 Android Studio
+    中用 Image Asset 向导生成 mipmap 资源并改回 @mipmap/ic_launcher。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M82,38H26c-3.3,0 -6,2.7 -6,6v20c0,3.3 2.7,6 6,6h56c3.3,0 6,-2.7 6,-6V44C88,40.7 85.3,38 82,38zM48,58h-8v8h-6v-8h-8v-6h8v-8h6v8h8V58zM64,64c-2.8,0 -5,-2.2 -5,-5s2.2,-5 5,-5s5,2.2 5,5S66.8,64 64,64zM76,52c-2.8,0 -5,-2.2 -5,-5s2.2,-5 5,-5s5,2.2 5,5S78.8,52 76,52z" />
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M52,80h4v14h-4zM52,96h4v4h-4z" />
+</vector>

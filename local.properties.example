@@ -1,0 +1,8 @@
+# 复制本文件为 local.properties，并填入你的 Android SDK 绝对路径。
+# 注意：也可不创建此文件，而是设置环境变量 ANDROID_HOME / ANDROID_SDK_ROOT 指向 SDK 目录（二选一）。
+#
+# Windows 示例（反斜杠需转义为双反斜杠）：
+# sdk.dir=C\:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
+#
+# macOS / Linux 示例：
+# sdk.dir=/Users/YourName/Library/Android/sdk
