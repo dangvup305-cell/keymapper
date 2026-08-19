@@ -2,7 +2,7 @@ package com.keymapper.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
-import android.accessibilityservice.AccessibilityService.GestureResultCallback
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Path
 import android.os.Handler
@@ -37,11 +37,11 @@ import org.koin.android.ext.android.inject
  *
  * 另外在 [onAccessibilityEvent] 中读取前台应用包名，支撑 P1-1「按包名自动切换配置」。
  */
+@SuppressLint("NewApi")
 class KeyMapperAccessibilityService : AccessibilityService(), GestureInjector {
 
     private val engine: MappingEngine by inject()
     private val repository: ConfigRepository by inject()
-    private val scaler: ResolutionScaler by inject()
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -276,7 +276,7 @@ class KeyMapperAccessibilityService : AccessibilityService(), GestureInjector {
         }
     }
 
-    private val gestureCallback = object : GestureResultCallback() {
+    private val gestureCallback = object : AccessibilityService.GestureResultCallback() {
         override fun onCompleted(gestureDescription: GestureDescription?) {
             // 正常完成，无需处理
         }
@@ -310,11 +310,12 @@ class KeyMapperAccessibilityService : AccessibilityService(), GestureInjector {
         @Volatile
         private var instanceRef: KeyMapperAccessibilityService? = null
 
-        private val connectedState = MutableLiveData<Boolean>(false)
+        private val connectedState = MutableLiveData(false)
 
-        private val foregroundPackageState = MutableLiveData<String>("")
+        private val foregroundPackageState = MutableLiveData("")
 
         /** 服务单例，未连接时为 null。 */
+        @Suppress("unused")
         val instance: KeyMapperAccessibilityService?
             get() = instanceRef
 
@@ -322,9 +323,11 @@ class KeyMapperAccessibilityService : AccessibilityService(), GestureInjector {
         fun isRunning(): Boolean = instanceRef != null
 
         /** 无障碍服务连接状态（供 UI 观察）。 */
+        @Suppress("unused")
         val connected: LiveData<Boolean> get() = connectedState
 
         /** 当前前台应用包名（供 UI / 自动切换观察）。 */
+        @Suppress("unused")
         val foregroundPackage: LiveData<String> get() = foregroundPackageState
     }
 }
