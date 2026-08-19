@@ -72,6 +72,17 @@
         android:textSize="14sp" />
 
     <TextView
+        android:id="@+id/btnClicker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:text="@string/floating_btn_clicker"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
+
+    <TextView
         android:id="@+id/btnSettings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

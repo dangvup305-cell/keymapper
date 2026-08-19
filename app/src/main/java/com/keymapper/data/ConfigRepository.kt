@@ -2,6 +2,7 @@ package com.keymapper.data
 
 import android.content.SharedPreferences
 import android.net.Uri
+import com.keymapper.domain.model.AutoClickerConfig
 import com.keymapper.domain.model.MappingConfig
 import com.keymapper.util.Constants
 import kotlinx.coroutines.Dispatchers
@@ -151,5 +152,20 @@ class ConfigRepository(
 
     fun markFirstLaunchDone() {
         prefs.edit().putBoolean(Constants.PREF_FIRST_LAUNCH_DONE, true).apply()
+    }
+
+    // ------------------------------------------------------------------
+    // 连点器配置（模式二·屏幕辅助，SharedPreferences 轻量持久化）
+    // ------------------------------------------------------------------
+
+    /** 载入上次的连点器配置，未保存过时返回空配置。 */
+    fun loadAutoClickerConfig(): AutoClickerConfig =
+        prefs.getString(Constants.PREF_AUTOCLICKER_CONFIG, null)
+            ?.let { AutoClickerConfig.fromJson(it) }
+            ?: AutoClickerConfig()
+
+    /** 保存连点器配置（选点与参数，下次打开直接复用）。 */
+    fun saveAutoClickerConfig(cfg: AutoClickerConfig) {
+        prefs.edit().putString(Constants.PREF_AUTOCLICKER_CONFIG, cfg.toJson()).apply()
     }
 }

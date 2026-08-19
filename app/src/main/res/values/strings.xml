@@ -164,4 +164,26 @@
     <string name="btn_disable_battery_opt">关闭电池优化</string>
     <string name="keepalive_guide_title">一加 / ColorOS 保活设置（重要）</string>
     <string name="keepalive_guide_body">一加系统会主动回收后台服务，请逐项确认：\n1. 设置 → 电池 → 电池优化 → KeyMapper → 不允许（下方按钮可一键跳转）；\n2. 设置 → 应用 → 应用管理 → KeyMapper → 自启动 → 允许；\n3. 设置 → 应用 → 应用管理 → KeyMapper → 耗电管理 → 允许后台运行 / 允许被其他应用唤醒；\n4. 多任务视图中长按本应用卡片 → 点击锁形图标锁定；\n5. 设置 → 权限管理 → 悬浮窗 → 允许 KeyMapper。\n完成以上设置后，按键映射可长期稳定运行。</string>
+
+    <!-- 第二批：循环连点器（模式二·屏幕辅助） -->
+    <string name="floating_btn_clicker">连点器</string>
+    <string name="title_auto_clicker">循环连点器</string>
+    <string name="clicker_hint">点击屏幕添加连点坐标（可多选）；点「开始连点」后按间隔循环点击，适合自动刷取等场景</string>
+    <string name="clicker_interval_label">间隔</string>
+    <string name="clicker_interval_unit">ms</string>
+    <string name="clicker_count_label">次数</string>
+    <string name="clicker_duration_label">时长秒</string>
+    <string name="clicker_btn_start">开始连点</string>
+    <string name="clicker_btn_stop">■ 停止连点</string>
+    <string name="clicker_point_count">已选 %1$d 个坐标</string>
+    <string name="clicker_running">● 连点运行中…（悬浮窗将出现停止按钮）</string>
+    <string name="clicker_idle">就绪：点击屏幕添加坐标后点「开始连点」（次数/时长填 0 表示不限）</string>
+    <string name="clicker_toast_no_points">请先点击屏幕添加连点坐标</string>
+    <string name="clicker_toast_started">连点已开始</string>
+    <string name="clicker_toast_stopped">连点已停止</string>
+    <string name="clicker_floating_stop">■ 停止连点</string>
+
+    <!-- 第二批：快捷磁贴 / 通知栏按钮 -->
+    <string name="tile_label">悬浮窗开关</string>
+    <string name="notification_action_clicker">连点器</string>
 </resources>

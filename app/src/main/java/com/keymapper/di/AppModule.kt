@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.keymapper.data.ConfigRepository
 import com.keymapper.data.JsonConfigStore
+import com.keymapper.engine.AutoClickerPlayer
 import com.keymapper.engine.MacroPlayer
 import com.keymapper.engine.MappingEngine
 import com.keymapper.util.Constants
@@ -45,6 +46,9 @@ val appModule = module {
     single { ResolutionScaler() }
 
     single { MacroPlayer() }
+
+    /** 循环连点器：进程内单例，供无障碍服务/悬浮窗/连点器页面共享同一运行状态。 */
+    single { AutoClickerPlayer() }
 
     single { MappingEngine(scaler = get(), macroPlayer = get()) }
 }

@@ -20,6 +20,7 @@ import androidx.core.app.NotificationCompat
 import com.keymapper.MainActivity
 import com.keymapper.R
 import com.keymapper.data.ConfigRepository
+import com.keymapper.ui.clicker.AutoClickerActivity
 import com.keymapper.util.Constants
 import org.koin.android.ext.android.inject
 import org.xmlpull.v1.XmlPullParser
@@ -155,11 +156,22 @@ class KeepAliveService : Service() {
             pendingIntentFlags(),
         )
 
+        // 通知栏快捷按钮：一键打开连点器（模式二·屏幕辅助）
+        val clickerIntent = PendingIntent.getActivity(
+            this,
+            REQUEST_CLICKER,
+            Intent(this, AutoClickerActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+            pendingIntentFlags(),
+        )
+
         return NotificationCompat.Builder(this, config.channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(getString(R.string.notification_title))
             .setContentText(text)
             .setContentIntent(contentIntent)
+            .addAction(0, getString(R.string.notification_action_clicker), clickerIntent)
             .setOngoing(true)
             .setShowWhen(false)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -412,6 +424,7 @@ class KeepAliveService : Service() {
         private const val TAG_ROOT = "keep-alive-config"
         private const val REQUEST_CONTENT = 2001
         private const val REQUEST_RESTART = 2002
+        private const val REQUEST_CLICKER = 2003
 
         /** 启动保活服务（Android 8+ 走 startForegroundService）。 */
         fun start(context: Context) {

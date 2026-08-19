@@ -29,6 +29,7 @@ class ControlPanelView @JvmOverloads constructor(
     var onLoadConfig: (() -> Unit)? = null
     var onToggleMarkers: (() -> Unit)? = null
     var onToggleMarkerManage: (() -> Unit)? = null
+    var onOpenClicker: (() -> Unit)? = null
     var onOpenSettings: (() -> Unit)? = null
     var onClose: (() -> Unit)? = null
 
@@ -45,6 +46,7 @@ class ControlPanelView @JvmOverloads constructor(
             onToggleMarkerManage?.invoke()
             true
         }
+        binding.btnClicker.setOnClickListener { onOpenClicker?.invoke() }
         binding.btnSettings.setOnClickListener { onOpenSettings?.invoke() }
         binding.btnClose.setOnClickListener { onClose?.invoke() }
     }

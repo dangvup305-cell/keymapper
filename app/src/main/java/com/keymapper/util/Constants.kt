@@ -113,6 +113,9 @@ object Constants {
     const val PREF_FIRST_LAUNCH_DONE = "pref_first_launch_done"
     const val PREF_MARKERS_VISIBLE = "pref_markers_visible"
 
+    /** 连点器配置 JSON（模式二·屏幕辅助，SharedPreferences 持久化） */
+    const val PREF_AUTOCLICKER_CONFIG = "pref_auto_clicker_config"
+
     // ---------------------------------------------------------------------
     // 配置存储
     // ---------------------------------------------------------------------

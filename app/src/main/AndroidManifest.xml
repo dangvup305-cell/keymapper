@@ -63,6 +63,29 @@
             android:theme="@style/Theme.KeyMapper.Transparent"
             android:windowSoftInputMode="stateAlwaysHidden" />
 
+        <!-- 模式二·屏幕辅助：循环连点器（选点→按频率自动点击） -->
+        <activity
+            android:name=".ui.clicker.AutoClickerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|keyboard"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:screenOrientation="behind"
+            android:theme="@style/Theme.KeyMapper.Transparent"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <!-- 快捷磁贴：一键开关悬浮窗（悬浮球 + 操作面板 + 标记层） -->
+        <service
+            android:name=".service.QuickToggleTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_gamepad"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <!-- P0-5 / P1-1 / P1-6 配置面板 -->
         <activity
             android:name=".ui.config.ConfigPanelActivity"

@@ -13,6 +13,7 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.keymapper.data.ConfigRepository
+import com.keymapper.engine.AutoClickerPlayer
 import com.keymapper.engine.GestureInjector
 import com.keymapper.engine.MappingEngine
 import com.keymapper.service.KeepAliveService
@@ -42,6 +43,7 @@ class KeyMapperAccessibilityService : AccessibilityService(), GestureInjector {
 
     private val engine: MappingEngine by inject()
     private val repository: ConfigRepository by inject()
+    private val autoClicker: AutoClickerPlayer by inject()
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -72,6 +74,7 @@ class KeyMapperAccessibilityService : AccessibilityService(), GestureInjector {
         refreshScreenSize()
 
         engine.attach(this)
+        autoClicker.attach(this)
         registerKeyListener(engineKeyListener)
 
         // 恢复上次生效的配置，保证服务重启后按键立即可用
@@ -143,6 +146,7 @@ class KeyMapperAccessibilityService : AccessibilityService(), GestureInjector {
     private fun teardown() {
         unregisterKeyListener(engineKeyListener)
         engine.detach()
+        autoClicker.detach()
         if (instanceRef === this) {
             instanceRef = null
         }

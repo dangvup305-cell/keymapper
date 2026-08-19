@@ -15,8 +15,10 @@ import androidx.appcompat.app.AlertDialog
 import com.keymapper.R
 import com.keymapper.data.ConfigRepository
 import com.keymapper.domain.model.KeyBinding
+import com.keymapper.engine.AutoClickerPlayer
 import com.keymapper.engine.MappingEngine
 import com.keymapper.engine.TriggerEvent
+import com.keymapper.ui.clicker.AutoClickerActivity
 import com.keymapper.ui.config.ConfigPanelActivity
 import com.keymapper.ui.debug.DebugHighlightView
 import com.keymapper.ui.floating.ControlPanelView
@@ -47,6 +49,7 @@ class FloatingWindowService : Service() {
 
     private val engine: MappingEngine by inject()
     private val repository: ConfigRepository by inject()
+    private val autoClicker: AutoClickerPlayer by inject()
 
     private lateinit var windowManager: WindowManager
 
@@ -54,16 +57,19 @@ class FloatingWindowService : Service() {
     private var panelView: ControlPanelView? = null
     private var markerView: MarkerLayerView? = null
     private var debugView: DebugHighlightView? = null
+    private var clickerStopView: android.widget.Button? = null
 
     private var ballParams: WindowManager.LayoutParams? = null
     private var panelParams: WindowManager.LayoutParams? = null
     private var markerParams: WindowManager.LayoutParams? = null
     private var debugParams: WindowManager.LayoutParams? = null
+    private var clickerStopParams: WindowManager.LayoutParams? = null
 
     private var ballAdded = false
     private var panelAdded = false
     private var markerAdded = false
     private var debugAdded = false
+    private var clickerStopAdded = false
 
     private var markersVisible: Boolean = true
     private var testMode: Boolean = false
@@ -114,11 +120,21 @@ class FloatingWindowService : Service() {
         }
     }
 
+    // 连点器运行状态监听：显示/隐藏「■ 停止连点」小按钮
+    private val clickerStateListener: (Boolean) -> Unit = { running ->
+        if (running) showClickerStop() else hideClickerStop()
+    }
+
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         markersVisible = repository.isMarkersVisible()
         engine.addTriggerListener(triggerListener)
+        // 连点器运行状态：显示/隐藏「■ 停止连点」小按钮（服务启动时已在连点则立即显示）
+        autoClicker.addStateListener(clickerStateListener)
+        if (autoClicker.isRunning) {
+            showClickerStop()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -140,6 +156,7 @@ class FloatingWindowService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        autoClicker.removeStateListener(clickerStateListener)
         engine.removeTriggerListener(triggerListener)
         unregisterReceiverCompat()
         removeAllViews()
@@ -147,6 +164,7 @@ class FloatingWindowService : Service() {
         panelAdded = false
         markerAdded = false
         debugAdded = false
+        clickerStopAdded = false
         testMode = false
         isRunning = false
         scope.cancel()
@@ -195,6 +213,7 @@ class FloatingWindowService : Service() {
             view.onLoadConfig = { showQuickSwitch() }
             view.onToggleMarkers = { setMarkersVisible(!markersVisible) }
             view.onToggleMarkerManage = { setMarkerManageMode(true) }
+            view.onOpenClicker = { launchActivity(AutoClickerActivity::class.java) }
             view.onOpenSettings = { launchActivity(SettingsActivity::class.java) }
             view.onClose = { hidePanel() }
             view.setActiveConfig(repository.activeConfigName())
@@ -211,6 +230,29 @@ class FloatingWindowService : Service() {
         // 调试高亮层（全屏、不可触摸，仅测试模式挂载）
         debugParams = fullscreenParams(touchable = false)
         debugView = DebugHighlightView(this)
+
+        // 连点器「■ 停止」小按钮（初始不挂载，连点开始时显示）
+        clickerStopParams = overlayParams(
+            width = WindowManager.LayoutParams.WRAP_CONTENT,
+            height = WindowManager.LayoutParams.WRAP_CONTENT,
+            touchable = true,
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = (dm.widthPixels * 0.5f).toInt().coerceAtLeast(0)
+            y = (dm.heightPixels * 0.8f).toInt().coerceAtLeast(0)
+        }
+        clickerStopView = android.widget.Button(this).apply {
+            text = getString(R.string.clicker_floating_stop)
+            textSize = 13f
+            isAllCaps = false
+            setTextColor(android.graphics.Color.WHITE)
+            setBackgroundColor(android.graphics.Color.parseColor("#CCD32F2F"))
+            setOnClickListener { autoClicker.stop() }
+        }
+        // 服务启动时连点器已在运行：立即显示停止按钮
+        if (autoClicker.isRunning) {
+            showClickerStop()
+        }
 
         // 让标记层/调试层从屏幕左上角开始绘制，避免被刘海/状态栏顶下来
         markerParams?.gravity = Gravity.TOP or Gravity.START
@@ -600,6 +642,26 @@ class FloatingWindowService : Service() {
         panelView?.let { safeRemove(it) }
         markerView?.let { safeRemove(it) }
         debugView?.let { safeRemove(it) }
+        clickerStopView?.let { safeRemove(it) }
+    }
+
+    // ------------------------------------------------------------------
+    // 连点器「■ 停止」小按钮（模式二·屏幕辅助）
+    // ------------------------------------------------------------------
+
+    /** 显示连点器停止按钮（悬浮小按钮，不遮挡游戏主要区域）。 */
+    private fun showClickerStop() {
+        if (clickerStopAdded || clickerStopView == null) return
+        clickerStopView?.let {
+            windowManager.addView(it, clickerStopParams)
+            clickerStopAdded = true
+        }
+    }
+
+    private fun hideClickerStop() {
+        if (!clickerStopAdded) return
+        clickerStopView?.let { safeRemove(it) }
+        clickerStopAdded = false
     }
 
     private fun safeRemove(view: android.view.View) {
