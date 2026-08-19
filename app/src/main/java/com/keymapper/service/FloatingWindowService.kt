@@ -210,6 +210,10 @@ class FloatingWindowService : Service() {
         debugParams = fullscreenParams(touchable = false)
         debugView = DebugHighlightView(this)
 
+        // 让标记层/调试层从屏幕左上角开始绘制，避免被刘海/状态栏顶下来
+        markerParams?.gravity = Gravity.TOP or Gravity.START
+        debugParams?.gravity = Gravity.TOP or Gravity.START
+
         if (markersVisible) {
             windowManager.addView(markerView, markerParams)
             markerAdded = true
@@ -540,7 +544,13 @@ class FloatingWindowService : Service() {
             overlayType(),
             flags,
             PixelFormat.TRANSLUCENT,
-        )
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
     }
 
     companion object {

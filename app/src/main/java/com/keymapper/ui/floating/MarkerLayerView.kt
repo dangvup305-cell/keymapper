@@ -73,6 +73,9 @@ class MarkerLayerView @JvmOverloads constructor(
 
     private val labelRect = RectF()
 
+    /** 视图在屏幕上的位置；绘制时把绝对屏幕坐标转回局部坐标。 */
+    private val locationOnScreen = IntArray(2)
+
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private val longPressTimeout = ViewConfiguration.getLongPressTimeout().toLong()
 
@@ -98,10 +101,14 @@ class MarkerLayerView @JvmOverloads constructor(
         super.onDraw(canvas)
         if (markers.isEmpty()) return
 
+        getLocationOnScreen(locationOnScreen)
+        val offsetX = locationOnScreen[0].toFloat()
+        val offsetY = locationOnScreen[1].toFloat()
+
         for (binding in markers) {
             val color = parseColor(binding.labelColor)
-            val cx = binding.x.toFloat()
-            val cy = binding.y.toFloat()
+            val cx = binding.x.toFloat() - offsetX
+            val cy = binding.y.toFloat() - offsetY
 
             // 圆点 + 白色描边，保证在任何背景上都可见
             dotPaint.color = color
@@ -139,16 +146,16 @@ class MarkerLayerView @JvmOverloads constructor(
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                downX = event.x
-                downY = event.y
-                pendingBinding = findMarkerAt(event.x, event.y)
+                downX = event.rawX
+                downY = event.rawY
+                pendingBinding = findMarkerAt(event.rawX, event.rawY)
                 if (pendingBinding == null) return false
                 postDelayed(longPressRunnable, longPressTimeout)
                 return true
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (abs(event.x - downX) > touchSlop || abs(event.y - downY) > touchSlop) {
+                if (abs(event.rawX - downX) > touchSlop || abs(event.rawY - downY) > touchSlop) {
                     removeCallbacks(longPressRunnable)
                     pendingBinding = null
                 }

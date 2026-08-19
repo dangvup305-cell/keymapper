@@ -2,7 +2,7 @@ package com.keymapper.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
-import android.accessibilityservice.GestureDescription.GestureResultCallback
+import android.accessibilityservice.AccessibilityService.GestureResultCallback
 import android.content.Intent
 import android.graphics.Path
 import android.os.Handler
@@ -199,6 +199,7 @@ class KeyMapperAccessibilityService : AccessibilityService(), GestureInjector {
     override fun isInjectorReady(): Boolean = instanceRef === this
 
     override fun injectClick(x: Int, y: Int, durationMs: Long): Boolean {
+        Log.d(TAG, "injectClick screen=$screenWidth x $screenHeight target=($x, $y)")
         val path = Path().apply { moveTo(clampX(x), clampY(y)) }
         return dispatchStrokes(listOf(strokeOf(path, durationMs)))
     }

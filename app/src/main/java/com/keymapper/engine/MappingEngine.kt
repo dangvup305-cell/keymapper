@@ -1,5 +1,6 @@
 package com.keymapper.engine
 
+import android.util.Log
 import android.view.KeyEvent
 import com.keymapper.domain.model.ActionType
 import com.keymapper.domain.model.GestureType
@@ -267,6 +268,7 @@ class MappingEngine(
             }
         }
 
+        Log.d("MappingEngine", "key $normalized not matched; state=$state singles=${singleMap.keys} combos=${comboMap.keys}")
         return false
     }
 
@@ -351,6 +353,7 @@ class MappingEngine(
      */
     private fun dispatch(binding: KeyBinding) {
         val point = scaledPoint(binding.x, binding.y)
+        Log.d("MappingEngine", "dispatch ${binding.displayKey()} src=(${binding.x},${binding.y}) scaled=($point) source=${sourceWidth}x$sourceHeight target=${targetWidth}x$targetHeight")
         val testMode = state == EngineState.TEST_MODE
         val injectorRef = injector
 

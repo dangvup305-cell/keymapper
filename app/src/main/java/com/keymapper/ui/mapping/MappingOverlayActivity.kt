@@ -26,6 +26,9 @@ import com.keymapper.util.KeyEventUtil
 import com.keymapper.util.ResolutionScaler
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 /**
  * 映射模式覆盖层宿主（P0-2 / P0-3 / P0-4 / P2-1）。
@@ -77,6 +80,12 @@ class MappingOverlayActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 映射覆盖层必须真正铺满屏幕，否则 rawX/rawY 与 View 局部坐标之间会差一个系统栏偏移
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
         binding = ActivityMappingOverlayBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
