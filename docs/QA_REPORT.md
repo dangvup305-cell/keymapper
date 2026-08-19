@@ -36,9 +36,9 @@
 ### 3.2 源码问题（需转工程师修复）
 
 - **【源码编译缺陷-1】`app/src/main/java/com/keymapper/accessibility/KeyMapperAccessibilityService.kt`**
-  - **现象**：第 277 行 `private val gestureCallback = object : GestureResultCallback() {` 使用了 `GestureResultCallback`，但本文件仅 `import android.accessibilityservice.GestureDescription`（第 4 行），**未导入其嵌套类** `android.accessibilityservice.GestureDescription.GestureResultCallback`。Kotlin 导入外层类不会带入嵌套类，因此该符号为 Unresolved reference，**将导致整个模块编译失败**。
+  - **现象**：第 279 行 `private val gestureCallback = object : GestureResultCallback() {` 使用了 `GestureResultCallback`，但本文件遗漏了对它的 import。`GestureResultCallback` 的真实类型属于 `android.accessibilityservice.AccessibilityService`（**而非** `GestureDescription`，后者下并无此嵌套类），正确写法为 `import android.accessibilityservice.AccessibilityService.GestureResultCallback`；若误写成 `GestureDescription.GestureResultCallback` 会因该类不存在而编译报错。**（已于后续提交修正为 `AccessibilityService.GestureResultCallback`）**
   - **影响范围**：该 `gestureCallback` 同时作为第 270 行 `dispatchGesture(builder.build(), gestureCallback, mainHandler)` 的回调参数，错误会阻断无障碍服务的手势注入编译。
-  - **修复建议（一行 import，不改动业务语义）**：在文件顶部补 `import android.accessibilityservice.GestureDescription.GestureResultCallback`。
+  - **修复建议（一行 import，不改动业务语义）**：在文件顶部补 `import android.accessibilityservice.AccessibilityService.GestureResultCallback`。
   - **路由**：业务源码，QA 不擅自修改，转主理人交工程师修复。
 
 > 除上述 1 处外，未在其余源码中发现其它确定的编译级错误（未导入类、拼写、不存在的方法/属性、枚举不匹配）。
