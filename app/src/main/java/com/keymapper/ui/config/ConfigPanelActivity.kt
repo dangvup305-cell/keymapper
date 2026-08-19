@@ -154,8 +154,14 @@ class ConfigPanelActivity : AppCompatActivity() {
             .setMessage(getString(R.string.config_delete_confirm_msg, cfg.configName))
             .setPositiveButton(R.string.delete) { _, _ ->
                 lifecycleScope.launch {
+                    val wasActive = repository.activeConfigName() == cfg.configName
                     repository.deleteConfig(cfg.configName)
                     if (selectedConfig?.configName == cfg.configName) selectedConfig = null
+                    // 删除的是当前生效配置：立即清空引擎绑定（悬浮窗服务未运行时也必须生效），
+                    // 避免被删配置的映射残留在屏幕、下次打开又「没选就出来」
+                    if (wasActive) {
+                        engine.clearBindings()
+                    }
                     sendBroadcast(Intent(Constants.ACTION_CONFIG_CHANGED).setPackage(packageName))
                     withContext(Dispatchers.Main) {
                         toast(getString(R.string.config_toast_deleted, cfg.configName))

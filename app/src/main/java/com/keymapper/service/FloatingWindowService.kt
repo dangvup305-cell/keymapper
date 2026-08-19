@@ -485,7 +485,15 @@ class FloatingWindowService : Service() {
     // ------------------------------------------------------------------
 
     private fun applyConfig(name: String?) {
-        if (name.isNullOrBlank()) return
+        if (name.isNullOrBlank()) {
+            // 无生效配置（如刚删除了当前配置）：必须清空引擎绑定并刷新标记层，
+            // 否则被删配置的映射会残留在屏幕上、且下次打开「没选就出来」
+            engine.clearBindings()
+            refreshMarkers()
+            panelView?.setActiveConfig(null)
+            sendBroadcast(Intent(Constants.ACTION_BINDINGS_UPDATED).setPackage(packageName))
+            return
+        }
         scope.launch {
             try {
                 val cfg = repository.loadConfig(name) ?: return@launch
