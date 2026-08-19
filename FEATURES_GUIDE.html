@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KeyMapper 功能总览与操作说明</title>
+<style>
+  :root{
+    --accent:#FF5722; --accent-dark:#BF360C;
+    --bg:#F6F5F2; --card:#FFFFFF; --line:#E7E4DE;
+    --text:#2B2B2B; --muted:#6B6B66; --chip:#FFF0E9;
+    --ok:#1D9E75; --warn:#BA7517; --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       background:var(--bg); color:var(--text); line-height:1.65; padding-bottom:48px;}
+  .wrap{max-width:880px; margin:0 auto; padding:0 16px;}
+  header{background:var(--accent); color:#fff; padding:28px 0 22px;}
+  header .wrap h1{font-size:22px; font-weight:700; letter-spacing:.5px;}
+  header .wrap p{margin-top:6px; font-size:13px; opacity:.92;}
+  .ver{margin-top:8px; display:inline-block; font-size:12px; background:rgba(255,255,255,.22);
+       border-radius:20px; padding:2px 10px;}
+  section{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+          padding:20px 20px 18px; margin-top:18px;}
+  h2{font-size:16px; color:var(--accent-dark); margin-bottom:12px;
+     padding-left:10px; border-left:4px solid var(--accent); line-height:1.3;}
+  h3{font-size:14px; margin:14px 0 6px;}
+  p{font-size:13.5px; color:var(--text);}
+  .muted{color:var(--muted); font-size:12.5px;}
+  table{width:100%; border-collapse:collapse; margin-top:10px; font-size:13px;}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  th{background:#FAF9F6; color:var(--muted); font-weight:500; white-space:nowrap;}
+  .tag{display:inline-block; font-size:11px; border-radius:10px; padding:1px 8px; margin-left:4px;}
+  .tag.n{background:var(--chip); color:var(--accent-dark);}
+  .tag.o{background:#E8F3EC; color:#0F6E56;}
+  .tag.s{background:#EEEDFE; color:#534AB7;}
+  .steps{list-style:none; margin-top:8px;}
+  .steps li{position:relative; padding:6px 0 6px 26px; font-size:13.5px;}
+  .steps li::before{content:""; position:absolute; left:4px; top:13px; width:8px; height:8px;
+       border-radius:50%; background:var(--accent);}
+  .check li{padding-left:30px;}
+  .check li::before{content:""; left:2px; top:10px; width:14px; height:14px; border-radius:4px;
+       border:2px solid var(--accent); background:#fff;}
+  .note{background:#FFF8EC; border:1px solid #F2D9A8; border-radius:10px; padding:10px 12px;
+       font-size:12.5px; color:#7A5310; margin-top:10px;}
+  .kbd{background:#EFEDE8; border:1px solid #DDD9D0; border-bottom-width:2px; border-radius:6px;
+       padding:0 6px; font-size:12px; font-family:ui-monospace,Consolas,monospace;}
+  .flow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; font-size:13px;}
+  .flow .node{background:var(--chip); border:1px solid #F5C1A8; border-radius:10px; padding:6px 12px;}
+  .flow .arrow{color:var(--muted);}
+  footer{margin-top:22px; font-size:12px; color:var(--muted); text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>KeyMapper 按键映射</h1>
+    <p>把物理键盘按键映射成屏幕点击 / 长按 / 滑动 / 双指缩放；游戏向增强：可调键位、长按连发、换装备序列宏、循环连点器</p>
+    <span class="ver">版本 v1.1 · 2026-08-19 · 适配 一加 13 / 一加 Pad 3（ColorOS 15 / Android 15）</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 一、双模式架构 -->
+  <section>
+    <h2>一、双模式架构</h2>
+    <p class="muted">一个 App、两套能力，共用同一个无障碍服务（按键监听 + 手势注入）与悬浮层。</p>
+    <svg viewBox="0 0 820 300" width="100%" role="img" style="margin-top:12px;">
+      <rect x="30" y="20" width="760" height="260" rx="18" fill="#F6F5F2" stroke="#E7E4DE"/>
+      <text x="50" y="48" font-size="14" font-weight="600" fill="#BF360C">KeyMapper</text>
+      <rect x="50" y="70" width="330" height="96" rx="12" fill="#E6F1FB" stroke="#185FA5"/>
+      <text x="68" y="94" font-size="14" font-weight="600" fill="#042C53">模式一 · 按键映射</text>
+      <text x="68" y="116" font-size="12" fill="#0C447C">键盘 → 屏幕动作（点击/长按/滑动/缩放/宏）</text>
+      <text x="68" y="136" font-size="12" fill="#0C447C">可调键位 · 长按连发 · 组合键 · 网格吸附</text>
+      <rect x="440" y="70" width="330" height="96" rx="12" fill="#EAF3DE" stroke="#3B6D11"/>
+      <text x="458" y="94" font-size="14" font-weight="600" fill="#173404">模式二 · 屏幕辅助</text>
+      <text x="458" y="116" font-size="12" fill="#27500A">循环连点器：选点 → 按频率自动点击</text>
+      <text x="458" y="136" font-size="12" fill="#27500A">与映射互不影响 · 次数/时长自动停</text>
+      <rect x="200" y="196" width="420" height="62" rx="12" fill="#E1F5EE" stroke="#0F6E56"/>
+      <text x="220" y="220" font-size="13" font-weight="600" fill="#04342C">共享能力层</text>
+      <text x="220" y="242" font-size="12" fill="#085041">无障碍服务(onKeyEvent + dispatchGesture) · 悬浮层 · 配置 JSON · 保活</text>
+      <line x1="215" y1="166" x2="290" y2="196" stroke="#444" stroke-width="1"/>
+      <line x1="605" y1="166" x2="530" y2="196" stroke="#444" stroke-width="1"/>
+    </svg>
+  </section>
+
+  <!-- 二、功能总览 -->
+  <section>
+    <h2>二、功能总览</h2>
+    <table>
+      <tr><th>能力</th><th>说明</th><th>批次</th></tr>
+      <tr><td>全局按键映射</td><td>任意前台应用下，把物理键映射为屏幕坐标的点击 / 长按 / 滑动 / 双指缩放</td><td><span class="tag o">原有</span></td></tr>
+      <tr><td>组合键</td><td>Ctrl / Shift / Alt + 主键 → 不同动作，左右修饰键自动归一化，避免键位冲突</td><td><span class="tag o">原有</span></td></tr>
+      <tr><td>可调键位大小 + 拖动微调 + 网格吸附</td><td>标记半径 4–40dp 可调；悬浮层管理态直接拖动微调；网格吸附防键位重叠</td><td><span class="tag n">第一批</span></td></tr>
+      <tr><td>长按连发</td><td>按住物理键按 100ms 间隔持续触发，松开即停（移动 / 持续施法）</td><td><span class="tag n">第一批</span></td></tr>
+      <tr><td>一次性序列宏 + 音量键触发</td><td>录制「点击 / 滑动」步骤序列，按音量键一次性回放（换装备、整理背包）</td><td><span class="tag n">第一批</span></td></tr>
+      <tr><td>循环连点器</td><td>选 1~N 个坐标 → 按间隔循环自动点击，可设次数 / 时长自动停</td><td><span class="tag s">第二批</span></td></tr>
+      <tr><td>快捷磁贴</td><td>通知栏磁贴一键开关悬浮窗，状态实时同步</td><td><span class="tag s">第二批</span></td></tr>
+      <tr><td>通知栏快捷按钮</td><td>保活通知上的「连点器」按钮直达连点器页</td><td><span class="tag s">第二批</span></td></tr>
+      <tr><td>多配置管理</td><td>命名保存 / 载入 / 删除 / 按前台应用自动切换；保存即生效</td><td><span class="tag o">原有</span></td></tr>
+      <tr><td>测试模式</td><td>命中绑定只高亮不注入，验证键位不误触</td><td><span class="tag o">原有</span></td></tr>
+      <tr><td>保活</td><td>前台服务 + 开机自启 + ColorOS 保活引导（一加 13 / Pad 3）</td><td><span class="tag o">原有</span></td></tr>
+    </table>
+    <div class="note">不实现项（按需求明确划掉）：震动反馈、配置导入 / 导出。</div>
+  </section>
+
+  <!-- 三、快速上手 -->
+  <section>
+    <h2>三、快速上手（首次使用）</h2>
+    <div class="flow">
+      <span class="node">安装 APK</span><span class="arrow">→</span>
+      <span class="node">开启无障碍服务</span><span class="arrow">→</span>
+      <span class="node">授权悬浮窗</span><span class="arrow">→</span>
+      <span class="node">关闭电池优化</span><span class="arrow">→</span>
+      <span class="node">启动悬浮窗</span><span class="arrow">→</span>
+      <span class="node">开始映射</span>
+    </div>
+    <ul class="steps">
+      <li>设置 → 无障碍 → <b>KeyMapper 按键映射服务</b> → 开启（核心权限，不开无法触发）</li>
+      <li>悬浮窗权限：设置页点「去开启」授权（SYSTEM_ALERT_WINDOW）</li>
+      <li>通知权限（Android 13+）：授权后保活通知常驻</li>
+      <li>一加 / ColorOS：设置页「ColorOS 保活设置」一键关闭电池优化 + 允许自启动 / 多任务锁定</li>
+    </ul>
+  </section>
+
+  <!-- 四、操作说明 -->
+  <section>
+    <h2>四、操作说明</h2>
+
+    <h3>4.1 基本映射（点击 / 长按 / 滑动 / 双指缩放）</h3>
+    <ul class="steps">
+      <li>悬浮球 → 「开始映射」进入全屏覆盖层（或主界面「开始映射」）</li>
+      <li>点击屏幕记录坐标 → 按下要绑定的物理键（可先按修饰键再按主键 = 组合键）</li>
+      <li>长按已生成的标记可：删除 / 重绑键 / 改颜色 / 改触发类型（滑动需再点一次终点）/ 调整大小 / 连发开关</li>
+      <li>点「保存配置」命名落盘，即成为当前生效配置</li>
+    </ul>
+
+    <h3>4.2 可调键位大小 · 拖动微调 · 网格吸附</h3>
+    <ul class="steps">
+      <li>大小：映射模式长按标记 → 「调整大小」（4–40dp，大标记命中范围自动变大）；运行态悬浮层长按标记同样可调</li>
+      <li>拖动微调：悬浮面板<b>长按</b>「隐藏/显示绑定点」进入管理态 → 直接拖动标记到目标位置，松手自动保存</li>
+      <li>网格吸附：映射模式底部「网格吸附：开/关」；开启后采点与拖动自动对齐 20dp 网格，避免键位重叠</li>
+    </ul>
+
+    <h3>4.3 长按连发（移动 / 持续施法）</h3>
+    <ul class="steps">
+      <li>长按标记 → 「长按连发：开」：按住物理键按 100ms 间隔持续触发，松开即停；短按仍是一次普通触发</li>
+    </ul>
+
+    <h3>4.4 换装备序列宏 + 音量键触发</h3>
+    <ul class="steps">
+      <li>映射模式选好坐标后<b>按音量键</b>（Vol+ / Vol-）绑定；未绑定动作时音量键照常调音量</li>
+      <li>长按该标记 → 「修改触发类型」→ 「宏指令」→ 进入宏编辑器</li>
+      <li>在画面上<b>点击</b>添加「点击」步骤、<b>按住拖动</b>添加「滑动」步骤；底部可调统一间隔 / 删步骤</li>
+      <li>「完成」→ 保存配置。游戏中按音量键即一次性执行换装序列（跑完即停，不占用后续输入）</li>
+    </ul>
+
+    <h3>4.5 循环连点器（模式二）</h3>
+    <ul class="steps">
+      <li>入口：悬浮面板「连点器」/ 通知栏「连点器」按钮</li>
+      <li>点击屏幕添加 1~N 个连点坐标（带序号圆点）→ 设间隔(ms) / 次数(0=无限) / 时长秒(0=不限)</li>
+      <li>「开始连点」自动收起页面后台循环点击；次数 / 时长到达自动停</li>
+      <li>停止：悬浮窗「■ 停止连点」小按钮 / 重进连点器页点停止 / 无障碍服务断开自动停</li>
+    </ul>
+
+    <h3>4.6 快捷入口与配置管理</h3>
+    <ul class="steps">
+      <li>快捷磁贴：下拉通知栏「悬浮窗开关」磁贴（需先手动添加到快捷设置）</li>
+      <li>配置面板：主界面「配置管理」→ 载入 / 删除 / 测试映射；悬浮面板「加载配置 ▾」快速切换</li>
+      <li>测试模式：命中绑定只高亮不注入，确认键位不误触后关闭</li>
+    </ul>
+  </section>
+
+  <!-- 五、重新出包与安装 -->
+  <section>
+    <h2>五、重新出包与安装</h2>
+    <ul class="steps">
+      <li>Android Studio 打开 <span class="kbd">KeyMapper/</span> → 等待 Gradle 同步（自动补 wrapper）</li>
+      <li>菜单 <span class="kbd">Build → Build Bundle(s)/APK(s) → Build APK(s)</span></li>
+      <li>产物：<span class="kbd">app/build/outputs/apk/debug/app-debug.apk</span></li>
+      <li>安装：<span class="kbd">adb install -r app-debug.apk</span>（或传到手机直接安装）</li>
+    </ul>
+    <div class="note">覆盖安装不丢已保存的配置（存于应用私有目录）；新装请重新完成授权。</div>
+  </section>
+
+  <!-- 六、验证清单 -->
+  <section>
+    <h2>六、真机验证清单</h2>
+    <ul class="steps check">
+      <li>网格吸附：采点 / 拖动自动对齐网格</li>
+      <li>键位大小：调整 4–40dp 后映射态与运行态显示一致</li>
+      <li>拖动微调：管理态拖动松手后坐标持久化（重启 App 仍在）</li>
+      <li>长按连发：按住持续触发、松开停止、短按单次</li>
+      <li>音量键宏：按音量键执行一次换装序列，且系统音量不变</li>
+      <li>未绑定动作时音量键仍可正常调音量</li>
+      <li>连点器：选点 → 后台循环点击 → 次数/时长自动停 → 悬浮「停止」按钮有效</li>
+      <li>连点运行中游戏 / 触屏操作正常</li>
+      <li>删除配置后映射点立即消失、下次打开不再自动出现</li>
+      <li>磁贴可启停悬浮窗、状态正确；通知栏「连点器」按钮可进页</li>
+    </ul>
+  </section>
+
+  <footer>KeyMapper · 功能总览与操作说明 · 随仓库维护（README 同源）</footer>
+</div>
+</body>
+</html>
