@@ -1,7 +1,10 @@
 package com.keymapper.ui.settings
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.keymapper.R
@@ -27,6 +30,11 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
     private val repository: ConfigRepository by inject()
 
+    /** Android 13+ 通知权限请求器（设置页内可直接申请，比单纯跳设置页更顺手）。 */
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { refreshStatus() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
@@ -36,8 +44,20 @@ class SettingsActivity : AppCompatActivity() {
         binding.btnWhyAccessibility.setOnClickListener { showWhy(R.string.perm_accessibility_desc) }
         binding.btnOverlay.setOnClickListener { PermissionHelper.openOverlaySettings(this) }
         binding.btnWhyOverlay.setOnClickListener { showWhy(R.string.perm_overlay_desc) }
-        binding.btnNotification.setOnClickListener { PermissionHelper.openNotificationSettings(this) }
+        binding.btnNotification.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                !PermissionHelper.hasNotificationPermission(this)
+            ) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                PermissionHelper.openNotificationSettings(this)
+            }
+        }
         binding.btnWhyNotification.setOnClickListener { showWhy(R.string.perm_notification_desc) }
+        binding.btnBatteryOpt.setOnClickListener {
+            PermissionHelper.openBatteryOptimizationSettings(this)
+        }
+        binding.btnWhyBattery.setOnClickListener { showWhy(R.string.perm_battery_desc) }
         binding.btnOpenConfigPanel.setOnClickListener {
             startActivity(android.content.Intent(this, ConfigPanelActivity::class.java))
         }
@@ -64,6 +84,7 @@ class SettingsActivity : AppCompatActivity() {
         setStatus(binding.tvAccessibilityStatus, accessibilityOn)
         setStatus(binding.tvOverlayStatus, overlayOn)
         setStatus(binding.tvNotificationStatus, notificationOn)
+        setBatteryStatus(binding.tvBatteryOptStatus, PermissionHelper.isBatteryOptimized(this))
 
         binding.switchLowBattery.isChecked = repository.isLowBatterySaverEnabled()
         binding.switchAutoSwitch.isChecked = repository.isAutoSwitchEnabled()
@@ -89,6 +110,14 @@ class SettingsActivity : AppCompatActivity() {
                 if (granted) R.color.status_ok else R.color.status_error,
             ),
         )
+    }
+
+    private fun setBatteryStatus(textView: android.widget.TextView, optimized: Boolean) {
+        textView.setText(
+            if (optimized) R.string.perm_battery_status_optimized
+            else R.string.perm_battery_status_unoptimized,
+        )
+        textView.setTextColor(getColor(if (optimized) R.color.status_error else R.color.status_ok))
     }
 
     private fun showWhy(descRes: Int) {

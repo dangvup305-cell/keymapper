@@ -129,4 +129,13 @@
     <string name="error_accessibility_not_running">无障碍服务未运行，请到设置中开启</string>
     <string name="error_config_parse">配置文件解析失败：%1$s</string>
     <string name="error_no_mouse_device">未检测到鼠标设备，滚轮映射不可用</string>
+
+    <!-- 一加 / ColorOS 保活引导（针对 OnePlus 13 等激进后台管理 ROM） -->
+    <string name="perm_battery_title">电池优化（保活必需）</string>
+    <string name="perm_battery_desc">一加 / ColorOS 默认会限制后台应用，导致按键映射服务被回收。请将 KeyMapper 设为「不允许（不优化）」，否则重启手机或锁屏一段时间后映射会失效。</string>
+    <string name="perm_battery_status_optimized">已被优化（有被杀风险）</string>
+    <string name="perm_battery_status_unoptimized">已关闭优化</string>
+    <string name="btn_disable_battery_opt">关闭电池优化</string>
+    <string name="keepalive_guide_title">一加 / ColorOS 保活设置（重要）</string>
+    <string name="keepalive_guide_body">一加系统会主动回收后台服务，请逐项确认：\n1. 设置 → 电池 → 电池优化 → KeyMapper → 不允许（下方按钮可一键跳转）；\n2. 设置 → 应用 → 应用管理 → KeyMapper → 自启动 → 允许；\n3. 设置 → 应用 → 应用管理 → KeyMapper → 耗电管理 → 允许后台运行 / 允许被其他应用唤醒；\n4. 多任务视图中长按本应用卡片 → 点击锁形图标锁定；\n5. 设置 → 权限管理 → 悬浮窗 → 允许 KeyMapper。\n完成以上设置后，按键映射可长期稳定运行。</string>
 </resources>

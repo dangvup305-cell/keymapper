@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.text.TextUtils
 import androidx.core.content.ContextCompat
@@ -89,6 +90,30 @@ object PermissionHelper {
      */
     fun allRequiredGranted(context: Context): Boolean =
         isAccessibilityEnabled(context) && canDrawOverlays(context)
+
+    /**
+     * 电池优化是否仍然开启（一加 / ColorOS 保活关键指标）。
+     * 返回 true 表示「正在被系统优化（后台会被限制 / 冻结）」，需要引导用户关闭。
+     */
+    fun isBatteryOptimized(context: Context): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            !pm.isIgnoringBatteryOptimizations(context.packageName)
+        } else {
+            false
+        }
+
+    /**
+     * 跳转到系统「忽略电池优化」授权页（一加 / ColorOS 保活最有效的一键开关）。
+     * 对应 [Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS]。
+     */
+    fun openBatteryOptimizationSettings(context: Context) {
+        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+            data = Uri.parse("package:${context.packageName}")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startSafely(context, intent, appDetailsIntent(context))
+    }
 
     /** 缺失的必需权限清单，供 UI 提示。 */
     fun missingPermissions(context: Context): List<String> {
