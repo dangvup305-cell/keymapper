@@ -95,13 +95,11 @@ object PermissionHelper {
      * 电池优化是否仍然开启（一加 / ColorOS 保活关键指标）。
      * 返回 true 表示「正在被系统优化（后台会被限制 / 冻结）」，需要引导用户关闭。
      */
-    fun isBatteryOptimized(context: Context): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            !pm.isIgnoringBatteryOptimizations(context.packageName)
-        } else {
-            false
-        }
+    fun isBatteryOptimized(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false
+        val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return false
+        return !pm.isIgnoringBatteryOptimizations(context.packageName)
+    }
 
     /**
      * 跳转到系统「忽略电池优化」授权页（一加 / ColorOS 保活最有效的一键开关）。
