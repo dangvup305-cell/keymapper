@@ -146,3 +146,20 @@ gradlew.bat assembleDebug      # Windows
 - 本仓库已补齐构建脚本（根 `build.gradle.kts` / `settings.gradle.kts` / `gradle.properties`，模块 `app/build.gradle.kts` / `proguard-rules.pro`，以及 `gradlew` / `gradlew.bat` 启动器与 `local.properties.example`）。工程已通过编译面静态自审：Manifest 对类/资源/权限的引用、theme 对 color 的引用、布局对 string/color/drawable 的引用均一致。
 - **未经本机真编译**：生成环境无 Android SDK 且无外网，未能在本机跑 `assembleDebug`，故首次在你机器上构建仍可能暴露少量 Kotlin 编译问题（如个别未使用 import、类型推断）。遇到编译报错时按 Build 输出逐项修正即可，工程结构无需改动。
 - `gradle-wrapper.jar` 因生成环境无外网未随仓库提供；用 Android Studio 打开会自动补齐，或在有 Gradle 的机器执行 `gradle wrapper --gradle-version 8.2`。
+
+---
+
+## 七、已适配机型（定向适配）
+
+以下机型已做针对性适配，开箱即用，**无需额外代码改动**：
+
+| 机型 | 系统 | 适配要点 |
+| --- | --- | --- |
+| **一加 13（OnePlus 13）** | ColorOS 15 / Android 15 | 开机/更新后自启 `BootReceiver`；设置页「ColorOS 保活设置」卡片一键关闭电池优化 + 自启动/后台运行/多任务锁定引导；通知权限运行时申请 |
+| **一加 Pad 3（OnePlus Pad 3）** | ColorOS 15 / Android 15 | 与一加 13 同平台，**适配完全通用**：上述开机自启、保活引导、电池优化、通知权限均适用，无需额外修改 |
+
+**通用前提（所有机型一致）**：
+- 必须**外接物理键盘**（蓝牙 / OTG / 远程键鼠），纯触屏手机无键可映射。
+- 首次运行需手动开启三项权限：无障碍服务、悬浮窗（`SYSTEM_ALERT_WINDOW`）、通知（Android 13+）。
+- ColorOS / 国产 ROM 后台管理激进，请按设置页引导关闭电池优化并允许自启动，否则服务可能被回收导致按键暂时失效。
+- 坐标基于录制时的真实屏幕像素 + `ResolutionScaler` 缩放；旋转屏幕、分屏、折叠屏会改变窗口尺寸，可能导致标记/注入点偏移，建议在目标窗口形态下重新录制。
