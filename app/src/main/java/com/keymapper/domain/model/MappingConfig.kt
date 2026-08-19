@@ -44,6 +44,8 @@ object KeyMapperJson {
  * @property screenWidth  保存时的源分辨率宽（px），供 [scaledCopy] 换算
  * @property screenHeight 保存时的源分辨率高（px）
  * @property appPackage   绑定的前台应用包名（P1-1 自动切换用），为 null 表示不自动匹配
+ * @property snapToGrid   网格吸附开关：采点/拖动微调时坐标对齐网格，避免键位重叠冲突
+ * @property gridSize     网格间距（dp），<=0 时使用 [com.keymapper.util.Constants.DEFAULT_GRID_SIZE_DP]
  */
 @Serializable
 data class MappingConfig(
@@ -53,6 +55,8 @@ data class MappingConfig(
     val bindings: List<KeyBinding> = emptyList(),
     val createdAt: Long = 0L,
     val appPackage: String? = null,
+    val snapToGrid: Boolean = false,
+    val gridSize: Int = 0,
 ) {
 
     /** 配置内有效绑定数量。 */

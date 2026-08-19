@@ -45,6 +45,20 @@ class CrosshairView @JvmOverloads constructor(
     /** 锁定态：等待用户按键时不再接受新的采点，避免误触改坐标。 */
     var locked: Boolean = false
 
+    /** 是否开启网格吸附：采点坐标对齐网格，避免键位重叠冲突。 */
+    var snapToGrid: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    /** 网格间距（dp），<=0 时使用默认值。 */
+    var gridSize: Int = 0
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     private var bindings: List<KeyBinding> = emptyList()
 
     /** 待绑定点（屏幕绝对像素），-1 表示无。 */
@@ -53,7 +67,6 @@ class CrosshairView @JvmOverloads constructor(
 
     private val density = resources.displayMetrics.density
 
-    private val dotRadius = 9f * density
     private val hitRadius = 28f * density
     private val centerRadius = 5f * density
     private val labelPadH = 6f * density
@@ -69,6 +82,11 @@ class CrosshairView @JvmOverloads constructor(
         style = Paint.Style.STROKE
         strokeWidth = 1.5f * density
         color = lineColor
+    }
+    private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1f
+        color = 0x26FFFFFF
     }
     private val centerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -146,6 +164,9 @@ class CrosshairView @JvmOverloads constructor(
         super.onDraw(canvas)
         getLocationOnScreen(locationOnScreen)
 
+        if (snapToGrid) {
+            drawGrid(canvas)
+        }
         drawMarkers(canvas)
         drawCrosshair(canvas)
     }
@@ -156,10 +177,11 @@ class CrosshairView @JvmOverloads constructor(
             val cx = toLocalX(item.x)
             val cy = toLocalY(item.y)
             val color = parseColor(item.labelColor)
+            val radius = markerRadiusOf(item)
 
             dotPaint.color = color
-            canvas.drawCircle(cx, cy, dotRadius, dotPaint)
-            canvas.drawCircle(cx, cy, dotRadius, ringPaint)
+            canvas.drawCircle(cx, cy, radius, dotPaint)
+            canvas.drawCircle(cx, cy, radius, ringPaint)
 
             val text = item.effectiveLabel() + actionSuffix(item.actionType)
             val textWidth = labelTextPaint.measureText(text)
@@ -229,7 +251,10 @@ class CrosshairView @JvmOverloads constructor(
                 val moved = abs(event.rawX - downRawX) > touchSlop ||
                     abs(event.rawY - downRawY) > touchSlop
                 if (!longPressFired && !moved && !locked) {
-                    onPointPicked?.invoke(event.rawX.toInt(), event.rawY.toInt())
+                    // 网格吸附开启时，采点坐标对齐网格（避免键位重叠冲突）
+                    val pickedX = snapValue(event.rawX)
+                    val pickedY = snapValue(event.rawY)
+                    onPointPicked?.invoke(pickedX, pickedY)
                 }
                 pressedMarker = null
                 longPressFired = false
@@ -251,13 +276,49 @@ class CrosshairView @JvmOverloads constructor(
         super.onDetachedFromWindow()
     }
 
-    /** 命中测试：绝对坐标下距触点最近且在 [hitRadius] 内的标记。 */
+    /** 命中测试：绝对坐标下距触点最近且在命中半径内的标记（大标记有更大的命中范围）。 */
     private fun findMarkerAt(rawX: Float, rawY: Float): KeyBinding? =
-        bindings.filter { distanceTo(it, rawX, rawY) <= hitRadius }
+        bindings.filter { distanceTo(it, rawX, rawY) <= hitRadiusOf(it) }
             .minByOrNull { distanceTo(it, rawX, rawY) }
 
     private fun distanceTo(item: KeyBinding, rawX: Float, rawY: Float): Double =
         hypot((item.x - rawX).toDouble(), (item.y - rawY).toDouble())
+
+    /** 标记的实际绘制半径（px）：绑定自定义半径，未设置时用默认值。 */
+    private fun markerRadiusOf(binding: KeyBinding): Float =
+        binding.effectiveRadiusDp() * density
+
+    /** 标记的触摸命中半径（px）：不小于绘制半径。 */
+    private fun hitRadiusOf(binding: KeyBinding): Float =
+        maxOf(hitRadius, markerRadiusOf(binding))
+
+    /** 网格间距（px）。 */
+    private fun effectiveGridPx(): Float =
+        (if (gridSize > 0) gridSize else Constants.DEFAULT_GRID_SIZE_DP) * density
+
+    /** 屏幕绝对坐标 → 网格吸附后的整数坐标。 */
+    private fun snapValue(v: Float): Int {
+        if (!snapToGrid) return v.toInt()
+        val step = effectiveGridPx()
+        if (step <= 0f) return v.toInt()
+        return (Math.round(v / step) * step).toInt()
+    }
+
+    /** 铺一层浅网格（吸附开启时）。 */
+    private fun drawGrid(canvas: Canvas) {
+        val step = effectiveGridPx()
+        if (step <= 0f) return
+        var x = 0f
+        while (x <= width) {
+            canvas.drawLine(x, 0f, x, height.toFloat(), gridPaint)
+            x += step
+        }
+        var y = 0f
+        while (y <= height) {
+            canvas.drawLine(0f, y, width.toFloat(), y, gridPaint)
+            y += step
+        }
+    }
 
     // ------------------------------------------------------------------
     // 坐标换算与工具

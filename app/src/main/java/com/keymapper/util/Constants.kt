@@ -96,6 +96,12 @@ object Constants {
     const val EXTRA_KEYMAPPER_ACTION_TYPE = "EXTRA_KEYMAPPER_ACTION_TYPE"
     const val EXTRA_KEYMAPPER_FROM_FLOATING = "EXTRA_KEYMAPPER_FROM_FLOATING"
 
+    /** 宏编辑器传入/回传的宏 JSON（[MacroEditorActivity] 使用） */
+    const val EXTRA_MACRO_JSON = "EXTRA_MACRO_JSON"
+
+    /** 宏编辑器关联的绑定键显示文案（仅展示用） */
+    const val EXTRA_BINDING_KEY = "EXTRA_BINDING_KEY"
+
     // ---------------------------------------------------------------------
     // SharedPreferences
     // ---------------------------------------------------------------------
@@ -122,6 +128,18 @@ object Constants {
 
     /** 宏时间粒度：50ms（Q2 决议） */
     const val MACRO_GRANULARITY_MS = 50L
+
+    /** 长按连发（按住持续触发）默认间隔：100ms */
+    const val DEFAULT_REPEAT_INTERVAL_MS = 100L
+
+    /** 长按连发最小间隔，避免过密导致系统丢弃手势 */
+    const val MIN_REPEAT_INTERVAL_MS = 20L
+
+    /** 标记点默认半径（dp），绑定未单独设置半径时使用 */
+    const val DEFAULT_MARKER_RADIUS_DP = 12
+
+    /** 网格吸附默认间距（dp），配置未显式设置时使用 */
+    const val DEFAULT_GRID_SIZE_DP = 20
 
     /** 普通点击的手势时长 */
     const val DEFAULT_CLICK_DURATION_MS = 40L

@@ -52,6 +52,17 @@
             android:theme="@style/Theme.KeyMapper.Transparent"
             android:windowSoftInputMode="stateAlwaysHidden" />
 
+        <!-- 功能3 宏编辑器：全屏半透明 + 采点（点击/滑动步骤），用于一次性序列（换装备） -->
+        <activity
+            android:name=".ui.macro.MacroEditorActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|keyboard"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:screenOrientation="behind"
+            android:theme="@style/Theme.KeyMapper.Transparent"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+
         <!-- P0-5 / P1-1 / P1-6 配置面板 -->
         <activity
             android:name=".ui.config.ConfigPanelActivity"

@@ -39,6 +39,9 @@ enum class ActionType {
  * @property gestureParams  手势参数（P2-1），点击时可为 null
  * @property macro          绑定的宏（P1-3），非 null 时优先按宏回放
  * @property label          用户自定义标签文案，为空时由 [effectiveLabel] 回退为按键名
+ * @property radius         标记点半径（dp），0 表示使用默认大小（可调键位大小，解决游戏小移动框/键位冲突）
+ * @property repeatEnabled  长按连发：按住物理键按 [repeatIntervalMs] 持续触发（移动需持续按住）
+ * @property repeatIntervalMs 长按连发间隔（ms）
  */
 @Serializable
 data class KeyBinding(
@@ -51,6 +54,9 @@ data class KeyBinding(
     val gestureParams: GestureAction? = null,
     val macro: Macro? = null,
     val label: String? = null,
+    val radius: Int = 0,
+    val repeatEnabled: Boolean = false,
+    val repeatIntervalMs: Long = Constants.DEFAULT_REPEAT_INTERVAL_MS,
 ) {
 
     /** 是否为组合键绑定（至少两个键码）。 */
@@ -75,6 +81,12 @@ data class KeyBinding(
      * 标记层展示用的文案：优先用户自定义 [label]，否则用按键文案。
      */
     fun effectiveLabel(): String = label?.takeIf { it.isNotBlank() } ?: displayKey()
+
+    /**
+     * 标记点有效半径（dp）：未单独设置（<=0）时回退默认值。
+     */
+    fun effectiveRadiusDp(): Int =
+        if (radius > 0) radius else Constants.DEFAULT_MARKER_RADIUS_DP
 
     /**
      * 本绑定实际使用的手势参数：

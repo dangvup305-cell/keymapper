@@ -37,15 +37,19 @@ object KeyEventUtil {
         KeyEvent.KEYCODE_SYM,
     )
 
-    /** 系统保留键：无障碍服务无法可靠拦截，禁止参与绑定。 */
+    /**
+     * 系统保留键：无障碍服务无法可靠拦截，禁止参与绑定。
+     *
+     * 音量键（VOLUME_UP/DOWN/MUTE）**不在**保留列表：它们会被 onKeyEvent 正常送达，
+     * 且未绑定命中时引擎返回 false 透传给系统（音量照常调节），
+     * 绑定命中时才被消费——因此可以把音量键用作一次性宏（如换装备）的触发器，
+     * 不影响未绑定时的正常调音量行为。
+     */
     private val RESERVED: Set<Int> = setOf(
         KeyEvent.KEYCODE_HOME,
         KeyEvent.KEYCODE_BACK,
         KeyEvent.KEYCODE_APP_SWITCH,
         KeyEvent.KEYCODE_POWER,
-        KeyEvent.KEYCODE_VOLUME_UP,
-        KeyEvent.KEYCODE_VOLUME_DOWN,
-        KeyEvent.KEYCODE_VOLUME_MUTE,
     )
 
     /** 键码 → 可读标签。 */
@@ -90,6 +94,10 @@ object KeyEventUtil {
         put(KeyEvent.KEYCODE_SCROLL_LOCK, "ScrollLock")
         put(KeyEvent.KEYCODE_INSERT, "Insert")
         put(KeyEvent.KEYCODE_BREAK, "Pause")
+        // 音量键（可绑定为宏触发器）
+        put(KeyEvent.KEYCODE_VOLUME_UP, "Vol+")
+        put(KeyEvent.KEYCODE_VOLUME_DOWN, "Vol-")
+        put(KeyEvent.KEYCODE_VOLUME_MUTE, "VolM")
         // 方向与翻页
         put(KeyEvent.KEYCODE_DPAD_UP, "↑")
         put(KeyEvent.KEYCODE_DPAD_DOWN, "↓")

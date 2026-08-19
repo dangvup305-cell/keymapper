@@ -8,6 +8,9 @@ import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -18,9 +21,11 @@ import com.keymapper.databinding.ActivityMappingOverlayBinding
 import com.keymapper.domain.model.ActionType
 import com.keymapper.domain.model.GestureAction
 import com.keymapper.domain.model.KeyBinding
+import com.keymapper.domain.model.Macro
 import com.keymapper.domain.model.MappingConfig
 import com.keymapper.domain.model.Point
 import com.keymapper.engine.MappingEngine
+import com.keymapper.ui.macro.MacroEditorActivity
 import com.keymapper.util.Constants
 import com.keymapper.util.KeyEventUtil
 import com.keymapper.util.ResolutionScaler
@@ -74,6 +79,30 @@ class MappingOverlayActivity : AppCompatActivity() {
 
     private val captureTimeoutRunnable = Runnable { onCaptureTimeout() }
 
+    /** 宏编辑器结果回传：把编辑好的宏写回正在编辑的绑定（功能3）。 */
+    private val macroEditorLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        val data = result.data ?: return@registerForActivityResult
+        if (result.resultCode != android.app.Activity.RESULT_OK) return@registerForActivityResult
+        val marker = macroEditTarget ?: return@registerForActivityResult
+        val json = data.getStringExtra(Constants.EXTRA_MACRO_JSON) ?: return@registerForActivityResult
+        macroEditTarget = null
+        try {
+            val macro = Macro.fromJson(json)
+            val updated = marker.copy(actionType = ActionType.MACRO, macro = macro)
+            working = working.upsertBinding(updated).first
+            binding.crosshairView.setBindings(working.bindings)
+            refreshCount()
+            toast(getString(R.string.macro_toast_saved, macro.steps.size))
+        } catch (e: Exception) {
+            toast(getString(R.string.error_config_parse, e.message.orEmpty()))
+        }
+    }
+
+    /** 正在用宏编辑器编辑的绑定（从标记菜单进入）。 */
+    private var macroEditTarget: KeyBinding? = null
+
     // ------------------------------------------------------------------
     // 生命周期
     // ------------------------------------------------------------------
@@ -97,6 +126,7 @@ class MappingOverlayActivity : AppCompatActivity() {
         binding.crosshairView.onPointPicked = { x, y -> onPointPicked(x, y) }
         binding.crosshairView.onMarkerLongPress = { marker -> showMarkerMenu(marker) }
 
+        binding.btnGrid.setOnClickListener { toggleGridSnap() }
         binding.btnUndo.setOnClickListener { undoLast() }
         binding.btnSave.setOnClickListener { showSaveDialog() }
         binding.btnExit.setOnClickListener { exitMapping() }
@@ -188,8 +218,29 @@ class MappingOverlayActivity : AppCompatActivity() {
             }
             colorIndex = working.bindings.size
             binding.crosshairView.setBindings(working.bindings)
+            syncGridState()
             refreshHud()
         }
+    }
+
+    /** 把 working 的网格吸附状态同步到采点视图与按钮文案。 */
+    private fun syncGridState() {
+        binding.crosshairView.snapToGrid = working.snapToGrid
+        binding.crosshairView.gridSize = working.gridSize
+        binding.btnGrid.setText(
+            if (working.snapToGrid) R.string.mapping_btn_grid_on else R.string.mapping_btn_grid_off,
+        )
+    }
+
+    /** 切换网格吸附（写入 working，保存配置时一并落盘）。 */
+    private fun toggleGridSnap() {
+        val enabled = !working.snapToGrid
+        working = working.copy(
+            snapToGrid = enabled,
+            gridSize = if (working.gridSize > 0) working.gridSize else Constants.DEFAULT_GRID_SIZE_DP,
+        )
+        syncGridState()
+        toast(getString(if (enabled) R.string.mapping_toast_grid_on else R.string.mapping_toast_grid_off))
     }
 
     // ------------------------------------------------------------------
@@ -324,6 +375,12 @@ class MappingOverlayActivity : AppCompatActivity() {
             getString(R.string.mapping_marker_rebind),
             getString(R.string.mapping_marker_change_color),
             getString(R.string.mapping_marker_change_action),
+            getString(R.string.mapping_marker_size),
+            if (marker.repeatEnabled) {
+                getString(R.string.mapping_marker_repeat_off)
+            } else {
+                getString(R.string.mapping_marker_repeat_on)
+            },
         )
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.mapping_marker_menu_title, marker.displayKey()))
@@ -333,10 +390,62 @@ class MappingOverlayActivity : AppCompatActivity() {
                     1 -> startRebind(marker)
                     2 -> showColorPicker(marker)
                     3 -> showActionTypePicker(marker)
+                    4 -> showMarkerSizeDialog(marker)
+                    5 -> toggleRepeat(marker)
                 }
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    /** 调整标记大小（功能1）：SeekBar 实时预览半径，确认后写回 working。 */
+    private fun showMarkerSizeDialog(marker: KeyBinding) {
+        val container = LinearLayout(this).apply {
+            val pad = (resources.displayMetrics.density * 20).toInt()
+            setPadding(pad, pad / 2, pad, 0)
+            orientation = LinearLayout.VERTICAL
+        }
+        val label = TextView(this).apply {
+            text = getString(R.string.mapping_marker_size_value, marker.effectiveRadiusDp())
+        }
+        val seek = SeekBar(this).apply {
+            max = 40
+            progress = marker.effectiveRadiusDp().coerceIn(4, 40)
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(bar: SeekBar?, value: Int, fromUser: Boolean) {
+                    label.text = getString(R.string.mapping_marker_size_value, value.coerceAtLeast(4))
+                }
+
+                override fun onStartTrackingTouch(bar: SeekBar?) = Unit
+
+                override fun onStopTrackingTouch(bar: SeekBar?) = Unit
+            })
+        }
+        container.addView(label)
+        container.addView(seek)
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.mapping_marker_size)
+            .setView(container)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val updated = marker.copy(radius = seek.progress.coerceAtLeast(4))
+                working = working.upsertBinding(updated).first
+                binding.crosshairView.setBindings(working.bindings)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    /** 切换长按连发（功能2）：按住物理键按间隔持续触发。 */
+    private fun toggleRepeat(marker: KeyBinding) {
+        val updated = marker.copy(repeatEnabled = !marker.repeatEnabled)
+        working = working.upsertBinding(updated).first
+        toast(
+            getString(
+                if (updated.repeatEnabled) R.string.mapping_toast_repeat_on else R.string.mapping_toast_repeat_off,
+                updated.displayKey(),
+            ),
+        )
     }
 
     private fun deleteMarker(marker: KeyBinding) {
@@ -403,11 +512,7 @@ class MappingOverlayActivity : AppCompatActivity() {
                         ),
                     )
 
-                    4 -> if (marker.hasMacro) {
-                        applyActionType(marker, ActionType.MACRO, null)
-                    } else {
-                        toast(getString(R.string.mapping_macro_edit_hint))
-                    }
+                    4 -> startMacroEditor(marker)
                 }
             }
             .setNegativeButton(R.string.cancel, null)
@@ -450,6 +555,23 @@ class MappingOverlayActivity : AppCompatActivity() {
             source.x,
             source.y,
         )
+    }
+
+    // ------------------------------------------------------------------
+    // 宏编辑器（功能3：一次性序列，如换装备）
+    // ------------------------------------------------------------------
+
+    /**
+     * 打开宏编辑器：为 [marker] 创建/编辑一次性序列（点击/滑动步骤）。
+     * 保存后回传 Macro JSON，自动把绑定切换为 MACRO 类型。
+     */
+    private fun startMacroEditor(marker: KeyBinding) {
+        macroEditTarget = marker
+        val intent = Intent(this, MacroEditorActivity::class.java).apply {
+            putExtra(Constants.EXTRA_BINDING_KEY, marker.displayKey())
+            marker.macro?.let { putExtra(Constants.EXTRA_MACRO_JSON, it.toJson()) }
+        }
+        macroEditorLauncher.launch(intent)
     }
 
     // ------------------------------------------------------------------

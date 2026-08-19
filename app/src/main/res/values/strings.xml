@@ -76,6 +76,32 @@
     <string name="mapping_hint_swipe_target">请点击滑动的终点位置</string>
     <string name="mapping_macro_edit_hint">该映射点还没有宏步骤，请先在配置 JSON 中编写 macro 后再切换为宏指令</string>
 
+    <!-- 功能1：可调标记大小 + 网格吸附 -->
+    <string name="mapping_marker_size">调整大小</string>
+    <string name="mapping_marker_size_value">标记半径：%1$d dp</string>
+    <string name="mapping_btn_grid_on">网格吸附：开</string>
+    <string name="mapping_btn_grid_off">网格吸附：关</string>
+    <string name="mapping_toast_grid_on">网格吸附已开启：采点与拖动将对齐网格</string>
+    <string name="mapping_toast_grid_off">网格吸附已关闭</string>
+    <string name="mapping_marker_repeat_on">长按连发：开</string>
+    <string name="mapping_marker_repeat_off">长按连发：关</string>
+    <string name="mapping_toast_repeat_on">%1$s 已开启长按连发：按住将按间隔持续触发</string>
+    <string name="mapping_toast_repeat_off">%1$s 已关闭长按连发</string>
+
+    <!-- 功能3：宏编辑器（一次性序列，如换装备） -->
+    <string name="title_macro_editor">编辑宏序列</string>
+    <string name="macro_hint">点击屏幕添加「点击」步骤；按住并拖动添加「滑动」步骤。适合换装备等一次性操作</string>
+    <string name="macro_binding_key">绑定键：%1$s</string>
+    <string name="macro_step_click">点击 (%1$d, %2$d)</string>
+    <string name="macro_step_swipe">滑动 (%1$d,%2$d)→(%3$d,%4$d)</string>
+    <string name="macro_step_wait">等待 %1$d ms</string>
+    <string name="macro_delay_label">间隔</string>
+    <string name="macro_btn_done">完成</string>
+    <string name="macro_btn_clear">清空</string>
+    <string name="macro_toast_empty">宏序列为空：请先在屏幕上点击添加步骤</string>
+    <string name="macro_toast_saved">宏已保存，共 %1$d 步</string>
+    <string name="macro_step_count">共 %1$d 步 · 预计 %2$d ms</string>
+
     <!-- 触发类型 -->
     <string name="action_type_click">点击</string>
     <string name="action_type_longpress">长按</string>

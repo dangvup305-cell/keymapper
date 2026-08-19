@@ -1,5 +1,7 @@
 package com.keymapper.engine
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import com.keymapper.domain.model.ActionType
@@ -59,6 +61,12 @@ class MappingEngine(
 
     private val triggerListeners = CopyOnWriteArrayList<(TriggerEvent) -> Unit>()
 
+    /** 长按连发调度器（主线程 Handler，与按键回调同线程，无需加锁）。 */
+    private val repeatHandler = Handler(Looper.getMainLooper())
+
+    /** 正在连发的键码 → 对应 Runnable（按住持续触发，松开/重置时取消）。 */
+    private val repeatRunnables = HashMap<Int, Runnable>()
+
     private var injector: GestureInjector? = null
 
     private var captureCallback: ((Int, List<Int>?) -> Unit)? = null
@@ -94,6 +102,7 @@ class MappingEngine(
 
     /** 解绑（无障碍服务断开时调用）。 */
     fun detach() {
+        cancelAllRepeats()
         macroPlayer.detach()
         injector = null
         pressedKeys.clear()
@@ -121,6 +130,7 @@ class MappingEngine(
      * @param cfg 原始配置；坐标按 [setTargetResolution] 设置的目标分辨率在触发时实时缩放
      */
     fun loadBindings(cfg: MappingConfig) {
+        cancelAllRepeats()
         singleMap.clear()
         comboMap.clear()
         pressedKeys.clear()
@@ -154,6 +164,7 @@ class MappingEngine(
 
     /** 清空全部绑定并回到 [EngineState.IDLE]。 */
     fun clearBindings() {
+        cancelAllRepeats()
         singleMap.clear()
         comboMap.clear()
         pressedKeys.clear()
@@ -216,6 +227,7 @@ class MappingEngine(
 
         if (!isDown) {
             pressedKeys.remove(normalized)
+            cancelRepeat(normalized)
             return consumedKeys.remove(normalized)
         }
 
@@ -262,7 +274,12 @@ class MappingEngine(
         // ---------- 再匹配单键：仅在没有其它键同时按下时生效 ----------
         if (pressedKeys.size == 1) {
             singleMap[normalized]?.let { binding ->
-                dispatch(binding)
+                if (binding.repeatEnabled && !binding.hasMacro) {
+                    // 长按连发：按下立即触发一次，之后按间隔持续触发，UP 时停止
+                    startRepeat(normalized, binding)
+                } else {
+                    dispatch(binding)
+                }
                 consumedKeys.add(normalized)
                 return true
             }
@@ -450,8 +467,46 @@ class MappingEngine(
     private fun needsScaling(): Boolean =
         scaler.needsScaling(sourceWidth, sourceHeight, targetWidth, targetHeight)
 
+    // ------------------------------------------------------------------
+    // 长按连发（按住持续触发）
+    // ------------------------------------------------------------------
+
+    /**
+     * 启动某个键的连发：先立即触发一次（保证短按也是一次正常点击），
+     * 之后按绑定配置的间隔持续派发，直到 [cancelRepeat] 或键抬起。
+     */
+    private fun startRepeat(keyCode: Int, binding: KeyBinding) {
+        cancelRepeat(keyCode)
+        dispatch(binding)
+        val interval = binding.repeatIntervalMs
+            .coerceAtLeast(Constants.MIN_REPEAT_INTERVAL_MS)
+            .coerceAtMost(Constants.MAX_GESTURE_DURATION_MS)
+        val runnable = object : Runnable {
+            override fun run() {
+                dispatch(binding)
+                repeatHandler.postDelayed(this, interval)
+            }
+        }
+        repeatRunnables[keyCode] = runnable
+        repeatHandler.postDelayed(runnable, interval)
+    }
+
+    /** 停止某个键的连发（键抬起 / 状态重置时调用）。 */
+    private fun cancelRepeat(keyCode: Int) {
+        repeatRunnables.remove(keyCode)?.let { repeatHandler.removeCallbacks(it) }
+    }
+
+    /** 停止全部连发（配置切换 / 引擎解绑 / 应用切换时调用）。 */
+    private fun cancelAllRepeats() {
+        for (runnable in repeatRunnables.values) {
+            repeatHandler.removeCallbacks(runnable)
+        }
+        repeatRunnables.clear()
+    }
+
     /** 重置按键状态机（切换应用/配置时调用，避免残留按下状态）。 */
     fun resetKeyState() {
+        cancelAllRepeats()
         pressedKeys.clear()
         consumedKeys.clear()
     }

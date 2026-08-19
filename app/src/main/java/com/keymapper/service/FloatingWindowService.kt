@@ -205,6 +205,7 @@ class FloatingWindowService : Service() {
         markerParams = fullscreenParams(touchable = false)
         markerView = MarkerLayerView(this).also { view ->
             view.onMarkerLongPress = { marker -> showMarkerMenu(marker) }
+            view.onMarkerDrag = { marker, x, y -> updateBindingCoordinate(marker, x, y) }
         }
 
         // 调试高亮层（全屏、不可触摸，仅测试模式挂载）
@@ -299,6 +300,9 @@ class FloatingWindowService : Service() {
 
     private fun refreshMarkers() {
         if (!markerAdded) return
+        val cfg = engine.currentConfig
+        markerView?.snapToGrid = cfg?.snapToGrid == true
+        markerView?.gridSize = cfg?.gridSize ?: 0
         markerView?.setMarkers(engine.scaledBindings())
     }
 
@@ -306,6 +310,7 @@ class FloatingWindowService : Service() {
         val names = arrayOf(
             getString(R.string.mapping_marker_delete),
             getString(R.string.mapping_marker_rebind),
+            getString(R.string.mapping_marker_size),
             getString(R.string.close),
         )
         val dialog = AlertDialog.Builder(this)
@@ -317,12 +322,99 @@ class FloatingWindowService : Service() {
                         setMarkerManageMode(false)
                         startMapping()
                     }
-                    2 -> setMarkerManageMode(false)
+                    2 -> showMarkerSizeDialog(binding)
+                    3 -> setMarkerManageMode(false)
                 }
                 d.dismiss()
             }
             .create()
         showOverlayDialog(dialog)
+    }
+
+    /**
+     * 拖动微调：更新生效配置中某绑定的坐标并持久化（坐标已在标记层内按网格吸附）。
+     */
+    private fun updateBindingCoordinate(binding: KeyBinding, x: Int, y: Int) {
+        val name = repository.activeConfigName() ?: return
+        scope.launch {
+            try {
+                val cfg = repository.loadConfig(name) ?: return@launch
+                val signature = binding.signature()
+                val updated = cfg.copy(
+                    bindings = cfg.bindings.map {
+                        if (it.signature() == signature) it.copy(x = x, y = y) else it
+                    },
+                )
+                repository.saveConfig(updated)
+                repository.setActiveConfigName(name)
+                engine.loadBindings(updated)
+                refreshMarkers()
+                sendBroadcast(Intent(Constants.ACTION_BINDINGS_UPDATED).setPackage(packageName))
+            } catch (e: Exception) {
+                Log.w(TAG, "拖动微调保存失败：${e.message}")
+            }
+        }
+    }
+
+    /** 运行态调整标记大小：SeekBar 对话框，实时写回生效配置。 */
+    private fun showMarkerSizeDialog(binding: KeyBinding) {
+        val context = this
+        val container = android.widget.LinearLayout(context).apply {
+            val pad = (resources.displayMetrics.density * 20).toInt()
+            setPadding(pad, pad / 2, pad, 0)
+            orientation = android.widget.LinearLayout.VERTICAL
+        }
+        val label = android.widget.TextView(context).apply {
+            text = getString(R.string.mapping_marker_size_value, binding.effectiveRadiusDp())
+        }
+        val seek = android.widget.SeekBar(context).apply {
+            max = 40
+            progress = binding.effectiveRadiusDp().coerceIn(4, 40)
+            setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(bar: android.widget.SeekBar?, value: Int, fromUser: Boolean) {
+                    label.text = getString(R.string.mapping_marker_size_value, value.coerceAtLeast(4))
+                }
+                override fun onStartTrackingTouch(bar: android.widget.SeekBar?) = Unit
+                override fun onStopTrackingTouch(bar: android.widget.SeekBar?) = Unit
+            })
+        }
+        container.addView(label)
+        container.addView(seek)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.mapping_marker_size))
+            .setView(container)
+            .setPositiveButton(R.string.ok) { d, _ ->
+                val radius = seek.progress.coerceAtLeast(4)
+                updateBindingRadius(binding, radius)
+                d.dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .create()
+        showOverlayDialog(dialog)
+    }
+
+    /** 把新的标记半径写回生效配置并刷新标记层。 */
+    private fun updateBindingRadius(binding: KeyBinding, radius: Int) {
+        val name = repository.activeConfigName() ?: return
+        scope.launch {
+            try {
+                val cfg = repository.loadConfig(name) ?: return@launch
+                val signature = binding.signature()
+                val updated = cfg.copy(
+                    bindings = cfg.bindings.map {
+                        if (it.signature() == signature) it.copy(radius = radius) else it
+                    },
+                )
+                repository.saveConfig(updated)
+                repository.setActiveConfigName(name)
+                engine.loadBindings(updated)
+                refreshMarkers()
+                sendBroadcast(Intent(Constants.ACTION_BINDINGS_UPDATED).setPackage(packageName))
+            } catch (e: Exception) {
+                Log.w(TAG, "调整标记大小保存失败：${e.message}")
+            }
+        }
     }
 
     /**
