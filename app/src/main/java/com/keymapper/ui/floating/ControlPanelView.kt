@@ -59,4 +59,14 @@ class ControlPanelView @JvmOverloads constructor(
             context.getString(R.string.status_active_config, name)
         }
     }
+
+    /**
+     * 同步「隐藏/显示绑定点」按钮文案（随当前标记层可见性切换）。
+     * 当前标记可见时提示「隐藏绑定点」，已隐藏时提示「显示绑定点」。
+     */
+    fun setMarkerVisibleState(visible: Boolean) {
+        binding.btnMarkers.text = context.getString(
+            if (visible) R.string.floating_btn_hide_markers else R.string.floating_btn_show_markers,
+        )
+    }
 }

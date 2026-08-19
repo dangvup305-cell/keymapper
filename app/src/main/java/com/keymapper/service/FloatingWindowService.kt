@@ -198,6 +198,7 @@ class FloatingWindowService : Service() {
             view.onOpenSettings = { launchActivity(SettingsActivity::class.java) }
             view.onClose = { hidePanel() }
             view.setActiveConfig(repository.activeConfigName())
+            view.setMarkerVisibleState(markersVisible)
         }
 
         // 标记层（全屏、不可触摸）
@@ -241,6 +242,7 @@ class FloatingWindowService : Service() {
     }
 
     private fun showPanel() {
+        panelView?.setMarkerVisibleState(markersVisible)
         if (panelAdded) {
             panelView?.visibility = android.view.View.VISIBLE
             return
@@ -283,6 +285,7 @@ class FloatingWindowService : Service() {
             markerView?.let { windowManager.removeView(it) }
             markerAdded = false
         }
+        panelView?.setMarkerVisibleState(visible)
     }
 
     private fun setMarkerManageMode(manage: Boolean) {

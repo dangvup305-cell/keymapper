@@ -112,7 +112,8 @@
     <string name="floating_btn_mapping">开始映射</string>
     <string name="floating_btn_load">加载配置 ▾</string>
     <string name="floating_btn_settings">⚙ 设置</string>
-    <string name="floating_btn_markers">显示/隐藏标记</string>
+    <string name="floating_btn_hide_markers">隐藏绑定点</string>
+    <string name="floating_btn_show_markers">显示绑定点</string>
     <string name="floating_ball_desc">KeyMapper 悬浮球</string>
     <string name="floating_quick_switch_title">▾ 快速切换方案</string>
     <string name="floating_no_config">暂无可切换的配置</string>

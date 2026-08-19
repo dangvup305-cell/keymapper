@@ -67,7 +67,7 @@
         android:background="?android:attr/selectableItemBackground"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
-        android:text="@string/floating_btn_markers"
+        android:text="@string/floating_btn_hide_markers"
         android:textColor="@color/text_primary"
         android:textSize="14sp" />
 
